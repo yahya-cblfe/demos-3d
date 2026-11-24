@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mas Xibeques · Bàscara · Tour 3D de tu fin de semana de boda (demo)</title>
+<meta name="description" content="Demo orientativa en 3D de Mas Xibeques (Bàscara, Empordà): planifica el fin de semana de boda, viernes, sábado y domingo.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='12' width='22' height='18' fill='%23b8a27c'/%3E%3Cpath d='M2 13 16 4 30 13Z' fill='%23b4553a'/%3E%3C/svg%3E">
+<style>
+@font-face{font-family:"Cormorant Garamond";font-weight:600;font-display:swap;src:url(vendor/fonts/cormorant-garamond-600-latin.woff2) format("woff2")}
+@font-face{font-family:Assistant;font-weight:300 800;font-display:swap;src:url(vendor/fonts/assistant-latin.woff2) format("woff2")}
+:root{--ink:#f4efe4;--mute:#c9c2b0;--panel:rgba(28,30,24,.76);--line:rgba(244,239,228,.16);--gold:#d9b46a;--gold-ink:#221a08;--olive:#a9b98a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#14150f;color:var(--ink);font-family:Assistant,system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+#loader{position:fixed;inset:0;display:grid;place-items:center;background:#14150f;z-index:20;transition:opacity .9s}
+#loader.done{opacity:0;pointer-events:none}
+#loader div{font:600 34px "Cormorant Garamond",serif;letter-spacing:.08em;text-align:center}
+#loader small{display:block;font:500 12px Assistant;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);margin-top:10px}
+#loader i{display:block;width:160px;height:2px;background:rgba(244,239,228,.15);margin:18px auto 0;overflow:hidden;border-radius:2px}
+#loader i b{display:block;height:100%;width:0;background:var(--gold);transition:width .3s}
+.panel{position:fixed;left:16px;top:16px;bottom:16px;width:330px;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;overflow:auto;z-index:5;scrollbar-width:thin}
+.brand{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+h1{font:600 32px/1 "Cormorant Garamond",serif;margin:0;letter-spacing:.02em}
+.sub{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:6px 0 0}
+.lang{background:none;border:1px solid var(--line);color:var(--ink);border-radius:99px;font:600 11px Assistant;padding:5px 10px;cursor:pointer}
+.lang:hover{background:rgba(244,239,228,.1)}
+.intro{font-size:13px;line-height:1.45;color:var(--mute);margin:10px 0 0}
+h2{font:700 11px Assistant;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:16px 0 8px}
+h2.big{font:600 21px/1.1 "Cormorant Garamond",serif;letter-spacing:.02em;text-transform:none;color:var(--ink);margin:16px 0 9px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+.seg button,.views button,.moments button,.tog{background:rgba(244,239,228,.06);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 6px;font:600 13px Assistant;cursor:pointer;transition:.15s}
+.seg button small{display:block;font-size:10.5px;color:var(--mute);margin-top:1px;font-weight:500}
+.seg button:hover,.views button:hover,.moments button:hover,.tog:hover{background:rgba(244,239,228,.13)}
+.seg button.on,.views button.on,.moments button.on{background:var(--gold);border-color:var(--gold);color:var(--gold-ink)}
+.seg button.on small{color:#5a4514}
+#days button{padding:9px 4px 8px;font-size:14px}
+#days.pulse button:not(.on){animation:pulse 1.6s ease-in-out 3}
+@keyframes pulse{50%{border-color:var(--gold);box-shadow:0 0 0 3px rgba(217,180,106,.25)}}
+.moments{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.moments button{padding:6px 10px;border-radius:99px;font-size:12.5px;flex:1 0 auto}
+.step{margin-top:9px;border:1px solid var(--line);border-radius:10px;padding:10px 11px;background:rgba(0,0,0,.12);display:flex;gap:8px;align-items:flex-start}
+.step>div:first-child{flex:1}
+.step b{display:block;font:600 19px/1.1 "Cormorant Garamond",serif}
+.step p{margin:4px 0 0;font-size:12.5px;line-height:1.42;color:var(--mute)}
+.step .nav{display:flex;flex-direction:column;gap:4px}
+.step .nav button{width:30px;height:28px;border-radius:8px;border:1px solid var(--line);background:rgba(244,239,228,.06);color:var(--ink);cursor:pointer;font:700 14px Assistant}
+.step .nav button:hover{background:rgba(244,239,228,.16)}
+.guests{display:flex;align-items:baseline;gap:8px}
+.guests b{font:600 42px/1 "Cormorant Garamond",serif;font-variant-numeric:tabular-nums}
+.guests span{color:var(--mute);font-size:13.5px}
+input[type=range]{width:100%;accent-color:var(--gold);margin:8px 0 0}
+.ticks{height:14px;font-size:10.5px;color:var(--mute);font-variant-numeric:tabular-nums;position:relative;margin:0 7px}
+.ticks span{position:absolute;transform:translateX(-50%)}
+.ticks .sala{color:var(--gold);font-weight:700}
+.where{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;line-height:1.35}
+.where i{flex:none;width:9px;height:9px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(217,180,106,.18)}
+.where.carpa i{background:#f1ece0;box-shadow:0 0 0 4px rgba(241,236,224,.2)}
+.tog{display:flex;align-items:center;gap:9px;width:100%;margin-top:9px;padding:8px 10px;text-align:left;font-size:12.5px}
+.tog::before{content:"";flex:none;width:26px;height:14px;border-radius:9px;background:rgba(244,239,228,.2);box-shadow:inset -12px 0 0 2px rgba(30,28,22,.9);transition:.2s}
+.tog.on::before{background:var(--gold);box-shadow:inset 12px 0 0 2px rgba(30,28,22,.9)}
+.tog[disabled]{opacity:.45;cursor:default}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:14px}
+.stats div{border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+.stats div.wide{grid-column:1/-1}
+.stats b{display:block;font:600 25px/1.05 "Cormorant Garamond",serif;font-variant-numeric:tabular-nums}
+.stats span{font-size:11px;color:var(--mute);letter-spacing:.03em;line-height:1.25;display:block}
+.stats .beds{display:flex;align-items:baseline;gap:0 5px;flex-wrap:wrap;margin-bottom:3px}
+.stats .beds b{display:inline;font-size:25px}.beds em{font-style:normal;color:var(--mute);font-size:12.5px;margin-right:4px}
+.note{font-size:11.5px;line-height:1.5;color:var(--mute);margin:12px 0 0;border-left:2px solid var(--gold);padding-left:9px}
+.cta{display:block;margin-top:14px;text-align:center;background:var(--ink);color:#1b1a14;text-decoration:none;font:700 13.5px Assistant;padding:12px;border-radius:10px}
+.cta:hover{background:#fff}
+.mnote{display:none;font-size:11px;color:var(--gold);margin:5px 0 0}
+.credit{font-size:10.5px;color:#8f8a7b;margin:9px 0 0;text-align:center}
+.views{position:fixed;left:362px;right:16px;bottom:16px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;z-index:5}
+.views button{background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:9px 14px;border-radius:99px;white-space:nowrap}
+.hint{position:fixed;right:16px;top:16px;font-size:12px;color:var(--ink);background:var(--panel);border:1px solid var(--line);padding:7px 12px;border-radius:99px;z-index:5;backdrop-filter:blur(12px)}
+#tags{position:fixed;inset:0;pointer-events:none;z-index:4}
+.tag{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;background:rgba(28,30,24,.8);border:1px solid rgba(217,180,106,.7);color:var(--ink);font:700 11.5px Assistant;letter-spacing:.06em;padding:5px 10px 5px 8px;border-radius:99px;white-space:nowrap;backdrop-filter:blur(8px);transition:opacity .25s}
+.tag::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-right:6px;vertical-align:1px}
+.tag::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:14px;background:rgba(217,180,106,.7)}
+.tag.room{border-color:rgba(169,185,138,.9)}.tag.room::before{background:var(--olive)}
+.tag.far{opacity:0;pointer-events:none}
+#card{position:fixed;right:16px;top:60px;width:330px;max-height:calc(100% - 140px);overflow:auto;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:16px 18px;z-index:6;display:none}
+#card.show{display:block}
+#card h3{font:600 26px/1.05 "Cormorant Garamond",serif;margin:0 26px 4px 0}
+#card .k{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:0 0 8px}
+#card p{font-size:13.5px;line-height:1.5;margin:8px 0;color:#e8e2d4}
+#card ul{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.55;color:#e8e2d4}
+#card .x{position:absolute;right:10px;top:10px;background:none;border:0;color:var(--mute);font-size:20px;cursor:pointer;line-height:1}
+#card .src{font-size:11px;color:#8f8a7b;margin-top:10px}
+#banner{position:fixed;left:50%;top:16px;transform:translateX(-50%);margin-left:173px;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:7px 16px;font-size:12.5px;z-index:5;backdrop-filter:blur(12px);display:none;white-space:nowrap}
+#banner.show{display:block}
+#vid{position:fixed;inset:0;z-index:30;background:rgba(10,9,7,.86);display:none;place-items:center;padding:4vw}#vid.show{display:grid}#vid>div{position:relative;width:min(1200px,92vw)}#vid video{width:100%;border-radius:10px;display:block;background:#000}#vid .x{position:absolute;right:-6px;top:-38px;background:none;border:0;color:#f4efe4;font-size:30px;cursor:pointer}
+@media (max-width:760px){
+ .panel{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:44vh;padding:12px 13px}
+ .intro,.lightsec,.hidem{display:none} .mnote{display:block}
+ h2.big{margin-top:10px;font-size:19px}
+ .views{left:8px;right:8px;top:8px;bottom:auto;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+ .views button{padding:8px 12px}
+ .hint{display:none} h1{font-size:26px} .guests b{font-size:32px}
+ #card{left:8px;right:8px;width:auto;top:58px;max-height:40vh}
+ #banner{top:56px;margin-left:0;font-size:11.5px;white-space:normal;text-align:center;width:max-content;max-width:92vw;border-radius:12px}
+ .tag{font-size:10.5px;padding:4px 8px 4px 7px}
+}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}</script>
+</head>
+<body>
+<div id="loader"><div>Mas Xibeques<small data-i="loading">Preparando la finca…</small><i><b id="bar"></b></i></div></div>
+<canvas id="c"></canvas>
+<div id="tags"></div>
+
+<aside class="panel">
+  <div class="brand">
+    <div><h1>Mas Xibeques</h1><p class="sub" data-i="sub">Bàscara · Empordà · Tour 3D</p></div>
+    <button class="lang" id="lang" aria-label="English / Español">EN</button>
+  </div>
+  <p class="mnote" data-i="mnote">Demo orientativa · casa, plano y medidas aproximados</p>
+  <p class="intro" data-i="intro">Masía privada en plena naturaleza, de uso exclusivo. Recorre aquí tu fin de semana de boda, de la cena del viernes al brunch del domingo.</p>
+
+  <h2 class="big" data-i="hPlanner">Tu fin de semana de boda</h2>
+  <div class="seg pulse" id="days">
+    <button data-v="fri" data-i="fri">Viernes</button>
+    <button data-v="sat" data-i="sat">Sábado</button>
+    <button data-v="sun" data-i="sun">Domingo</button>
+  </div>
+  <div class="moments" id="moments"></div>
+  <div class="step"><div><b id="stepT">—</b><p id="stepP"></p></div><div class="nav"><button id="prev" aria-label="Anterior">‹</button><button id="next" aria-label="Siguiente">›</button></div></div>
+
+  <h2 data-i="hGuests">Invitados</h2>
+  <div class="guests"><b id="gN">90</b><span data-i="guestsUnit">personas</span></div>
+  <input type="range" id="guests" min="20" max="180" step="10" value="90" aria-label="Invitados">
+  <div class="ticks"><span style="left:0">20</span><span class="sala" style="left:25%">60</span><span style="left:50%">100</span><span style="left:75%">140</span><span style="left:100%">180</span></div>
+  <div class="where" id="where"><i></i><span id="whereT"></span></div>
+  <button class="tog" id="rain"><span data-i="rain">Plan B lluvia: banquete en la Sala polivalente</span></button>
+
+  <div class="stats">
+    <div><b>60 / 80</b><span data-i="salaCap">Sala polivalente · sentados / de pie</span></div>
+    <div><b id="sChairs">—</b><span id="sChairsL">sillas en el banquete</span></div>
+    <div class="wide"><span class="beds"><b>22</b><em data-i="bHouse">en la masía</em><b>+ 8</b><em data-i="bApts">en apartamentos</em><b>= 30</b><em data-i="bTot">camas</em></span><span data-i="bNote">8 habitaciones con baño privado + 2 apartamentos de 4 personas</span></div>
+  </div>
+
+  <p class="note" data-i="note">Demo orientativa creada por Yahya a partir de la información pública de Mas Xibeques. El exterior de la casa, el plano de la finca, las medidas y la capacidad de la carpa son aproximados.</p>
+  <a class="cta" id="cta" href="#" data-i="cta">Hablemos de esta demo</a>
+  <p class="credit" data-i="credit">Modelo 3D no oficial · texturas CC0 (Poly Haven, ambientCG)</p>
+  <div class="lightsec">
+  <h2 data-i="hTime">Luz</h2>
+  <div class="seg" id="time">
+    <button data-v="day" data-i="day">Día</button>
+    <button data-v="sunset" data-i="sunset">Atardecer</button>
+    <button data-v="night" data-i="night">Noche</button>
+  </div>
+  </div>
+</aside>
+
+<nav class="views" id="views">
+  <button data-v="aerial" data-i="vAerial">Vista aérea</button>
+  <button data-v="rooms" data-i="vRooms">Habitaciones</button>
+  <button data-v="interior" data-i="vInterior">Interior</button>
+  <button data-v="sala" data-i="vSala">Sala (lluvia)</button>
+  <button data-v="pool" data-i="vPool">Piscina</button>
+  <button data-v="lake" data-i="vLake">Lago</button>
+  <button data-v="tennis" data-i="vTennis">Tenis</button>
+  <button data-v="tour" data-i="vTour">▶ Tour</button>
+  <button data-v="video" data-i="vVideo">▶ Vídeo</button>
+</nav>
+<div id="banner"></div>
+<div id="vid"><div><button class="x" id="vidX" aria-label="Cerrar">×</button><video id="vidEl" controls playsinline preload="none" poster="video/poster.jpg"></video></div></div>
+<div class="hint" data-i="hint">Arrastra para girar · rueda para acercar · toca las etiquetas</div>
+<div id="card" role="dialog"><button class="x" id="cardX" aria-label="Cerrar">×</button><div id="cardBody"></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { computeLayout, banquetSpace, stayGuests, ZONES, CEREMONY, GUESTS, STEPS, STEP_DAY, FACTS } from './layout.js';
+
+const CONTACT = 'yahyaelhmidi11@gmail.com';   // Yahya (author of the demo) - the CTA never writes to the venue
+
+/* ---------- basics ---------- */
+let seed = 7; const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const R = (a, b) => a + rnd() * (b - a);
+const $ = (s) => document.querySelector(s);
+const canvas = $('#c'), bar = $('#bar');
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); }
+catch (e) { $('#loader small').textContent = 'Este navegador no tiene WebGL activo · WebGL is not available in this browser'; throw e; }
+const mobile = matchMedia('(max-width: 760px)').matches;
+renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.75 : 2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0xc9dcec, 0.00018);
+const camera = new THREE.PerspectiveCamera(46, 1, 0.3, 16000);
+camera.position.set(-160, 140, 260);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = .07; controls.maxPolarAngle = Math.PI * .49;
+controls.minDistance = 2; controls.maxDistance = 460; controls.target.set(0, 0, 0);
+
+const rt = new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, samples: 4 });
+const composer = new EffectComposer(renderer, rt);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(2, 2), .4, .6, 1.0); composer.addPass(bloom);
+composer.addPass(new OutputPass());
+const vis = { w: 1, h: 1 };
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); composer.setSize(w, h); camera.aspect = w / h; camera.fov = camera.aspect < .8 ? 62 : 46;
+  const pn = document.querySelector('.panel'), r = pn ? pn.getBoundingClientRect() : { width: 0, height: 0 }, narrow = w <= 760;
+  const px = narrow ? 0 : Math.min(r.width + 16, w * .4), py = narrow ? Math.min(r.height + 8, h * .5) : 0;
+  vis.w = (w - px) / w; vis.h = (h - py - (narrow ? 50 : 0)) / h;
+  camera.setViewOffset(w, h, -px / 2, py / 2 - (narrow ? 25 : 0), w, h); camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+/* ---------- assets (built in Blender: blender/build.py) ---------- */
+const manager = new THREE.LoadingManager(); manager.onProgress = (_, a, b) => { bar.style.width = Math.round(a / b * 100) + '%'; };
+const AS = 'assets/', tl = new THREE.TextureLoader(manager), gltf = new GLTFLoader(manager), rgbe = new RGBELoader();
+const ANISO = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+const texCache = {};
+function ptex(id, kind, rx = 1, ry = 1) { const k = [id, kind, rx, ry].join(); if (texCache[k]) return texCache[k];
+  const t = tl.load(`${AS}tex/${id}_${kind}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); t.anisotropy = ANISO; t.flipY = false; if (kind === 'diff') t.colorSpace = THREE.SRGBColorSpace; return texCache[k] = t; }
+function pbr(id, rx, ry, o = {}) { const arm = ptex(id, 'arm', rx, ry); return new THREE.MeshStandardMaterial({ map: ptex(id, 'diff', rx, ry), normalMap: ptex(id, 'nor_gl', rx, ry), roughnessMap: arm, metalnessMap: arm, aoMap: arm, metalness: 1, roughness: 1, ...o }); }
+function acg(id, o = {}) { return new THREE.MeshStandardMaterial({ map: ptex(id, 'diff'), normalMap: ptex(id, 'nor_gl'), roughnessMap: ptex(id, 'rough'), roughness: 1, ...o }); }
+const [venue, propsFile, TREES] = await Promise.all([gltf.loadAsync(AS + 'venue.glb'), gltf.loadAsync(AS + 'props.glb'), fetch(AS + 'trees.json').then(r => r.json())]);
+const prop = (n) => propsFile.scene.getObjectByName(n).geometry;
+
+/* ---------- materials ---------- */
+const S = (o) => new THREE.MeshStandardMaterial(o);
+const linenN = ptex('rough_linen', 'nor_gl', 2, 2);
+const woodMat = pbr('weathered_brown_planks', 1, 1, { color: 0xc0a082 });
+const whiteMat = S({ color: 0xf3f0e8, roughness: .45 }), ivoryMat = S({ color: 0xf0e8d6, roughness: .9, normalMap: linenN });
+const leafMat = S({ color: 0x3d5c31, roughness: .8 }), flowerMat = S({ color: 0xf6f0e6, roughness: .7 }), cypressMat = S({ color: 0x2b4430, roughness: .95 });
+const clothMat = S({ color: 0xf1e9d8, roughness: .92, normalMap: linenN, normalScale: new THREE.Vector2(.6, .6) });
+const canvasMat = S({ color: 0xf6f3ec, roughness: .85, normalMap: linenN, side: THREE.DoubleSide, emissive: 0xffc890, emissiveIntensity: 0 });
+const plateMat = S({ color: 0xffffff, roughness: .18 });
+const glassMat = S({ color: 0xffffff, roughness: .03, transparent: true, opacity: .32, envMapIntensity: 2.5, depthWrite: false });
+const danceMat = pbr('weathered_brown_planks', 1, 1, { color: 0xf6ead6 });
+const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffffff }), flameMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const wireMat = new THREE.LineBasicMaterial({ color: 0x1a1a1a });
+const MAP = { Stone: ['old_stone_wall'], RoofTile: ['clay_roof_tiles_02', 0xe2c9b8], Wood: ['weathered_brown_planks', 0xc0a082], Beam: ['weathered_brown_planks', 0x8a6a4c],
+  DoorWood: ['weathered_brown_planks', 0x86654a], Paving: ['terracotta_floor_tiles'], Plaster: ['white_plaster_02'], Limestone: ['white_plaster_02', 0xd8c8a6], PoolDeck: ['white_plaster_02', 0xe9dfc9],
+  Gravel: ['gravelly_sand'], CarpaFloor: ['weathered_brown_planks', 0xd8c2a0] };
+const ACG = { Brick: ['bricks', 0xf0d2b8], WoodFloor: ['woodfloor', 0x8a6448], GreenTile: ['greentile', 0xb7d8bd] };
+const matCache = {};
+const VEG = { PineNeedles: [0x4a5c34, .8], PineCore: [0x2c3a22, .95], BroadLeaves: [0x46602f, .7], BroadCore: [0x2f4222, .95], FruitLeaves: [0x5c7434, .7],
+  OliveLeaves: [0x77805e, .7], OliveCore: [0x4e573c, .95], CypressLeaves: [0x2e3f24, .85], CypressCore: [0x1f2c19, .95], BoxLeaves: [0x4a6328, .7], BoxCore: [0x2c3d1a, .95],
+  PalmLeaflets: [0x5f7236, .6], PalmDry: [0x8f7a4c, .85], PalmTrunkBark: [0x7a6650, .95], PineBark: [0x5a4232, .95], TreeBark: [0x5c4c3e, .95], OliveBark: [0x6a645a, .95],
+  OleanderFlowers: [0xe08aa2, .6], LavenderSpikes: [0x7e6fb0, .7], LavenderLeaves: [0x7c876a, .8], WhiteBlossom: [0xf4efe2, .6], PHChair: [0x8f8a7c, .7] };
+const glowMats = new Set(), lampMats = new Set(), fireMats = new Set();
+const G = { masUp: [], masRoof: [], salaRoof: [], carpa: [], net: [], cane: [] };
+
+/* ---------- helpers ---------- */
+const unit = new THREE.BoxGeometry(1, 1, 1);
+const Mx = (x, y, z, ry = 0, sx = 1, sy = 1, sz = 1) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new THREE.Vector3(sx, sy, sz));
+const MI = (a) => Mx(...a);
+function inst(geo, mat, ms, parent, cast = true) { if (!ms.length) return null; const m = new THREE.InstancedMesh(geo, mat, ms.length); ms.forEach((x, i) => m.setMatrixAt(i, x)); m.castShadow = cast; m.receiveShadow = true; m.computeBoundingSphere(); parent.add(m); return m; }
+function canvasTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = ANISO; return t; }
+
+/* ---------- terrain: estate lawn, mown fields, rolling hills (generic, estimate) ---------- */
+{
+  const W = 170, D = 150, g = new THREE.PlaneGeometry(W, D, 85, 75).rotateX(-Math.PI / 2), p = g.attributes.position, col = [];
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i) - 5, z = p.getZ(i) - 3; const n = .9 + .1 * Math.sin(x * .09 + 1) * Math.cos(z * .07) + .05 * Math.sin(x * .27 + z * .21), d = .5 + .5 * Math.sin(x * .05 - z * .06 + 2); col.push(n * (1 + .12 * d), n, n * (.94 - .08 * d)); }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const lawn = new THREE.Mesh(g, pbr('leafy_grass', W / 2, D / 2, { color: 0xaed27a, vertexColors: true })); lawn.position.set(-5, 0, -3); lawn.receiveShadow = true; scene.add(lawn);
+  const base = new THREE.Mesh(new THREE.PlaneGeometry(30000, 30000).rotateX(-Math.PI / 2), S({ color: 0x7f7a4c, roughness: 1 })); base.position.y = -.35; scene.add(base);
+  const rows = canvasTex(256, 256, (c, w, h) => { c.fillStyle = '#d0d0d0'; c.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 8) { c.fillStyle = `rgba(255,255,255,${.35 + Math.random() * .2})`; c.fillRect(0, y, w, 4); } for (let i = 0; i < 900; i++) { c.fillStyle = `rgba(0,0,0,${Math.random() * .08})`; c.fillRect(Math.random() * w, Math.random() * h, 3, 3); } });
+  rows.repeat.set(10, 10);
+  const COLS = [0x9db35a, 0xc9a54d, 0x7f9a45, 0xb8a060, 0x8c6a46], W8 = [4, 3, 3, 2, 1], ms = [], cs = [];
+  for (let x = -1400; x <= 1400; x += 96) for (let z = -1400; z <= 1400; z += 64) { if (x > -92 && x < 82 && z > -80 && z < 75) continue; if (x > -6 && x < 10 && z < -60) continue;
+    let r = rnd() * 13, k = 0; while (r > W8[k]) r -= W8[k++]; ms.push(Mx(x + R(-1.5, 1.5), -.12, z + R(-1.5, 1.5), R(-.015, .015), 92 + R(-3, 0), 1, 60 + R(-3, 0))); cs.push(new THREE.Color(COLS[k]).multiplyScalar(R(.92, 1.06))); }
+  const pm = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), S({ map: rows, roughness: .95 }), ms.length);
+  ms.forEach((m, i) => { pm.setMatrixAt(i, m); pm.setColorAt(i, cs[i]); }); pm.receiveShadow = true; scene.add(pm);
+  const hill = (mat, x, z, sx, h, sz, ry = 0) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 14, 0, Math.PI * 2, 0, Math.PI / 2), mat); m.scale.set(sx, h, sz); m.position.set(x, -30, z); m.rotation.y = ry; scene.add(m); return m; };
+  const near = S({ color: 0x6f7d55, roughness: 1 }), far = S({ color: 0x8796a8, roughness: 1 });
+  for (let i = 0; i < 14; i++) { const a = i / 14 * Math.PI * 2 + R(-.1, .1), d = R(2300, 3200); hill(near, Math.sin(a) * d, -Math.cos(a) * d, R(700, 1200), R(90, 190), R(450, 700), a); }
+  for (let i = 0; i < 7; i++) { const a = -.9 + i * .3 + R(-.05, .05), d = R(9000, 10500); hill(far, Math.sin(a) * d, -Math.cos(a) * d, R(1800, 2600), R(700, 1200), R(900, 1300), a); }   // Pyrenees to the north (silhouette)
+}
+
+/* ---------- estate (from the GLB) ---------- */
+venue.scene.traverse(o => { if (!o.isMesh) return; o.castShadow = o.receiveShadow = true; const n = o.name;
+  if (/MASUP/.test(n)) G.masUp.push(o); if (/^ROOF_(mas|chim)/.test(n)) G.masRoof.push(o); if (/^(ROOF_sala|SALAUP)/.test(n)) G.salaRoof.push(o);
+  if (/^CARPA_/.test(n)) G.carpa.push(o); if (/^NET_/.test(n)) G.net.push(o); if (n === 'Cane') G.cane.push(o);
+  if (/^(Paths|Court_|Lake_|Paving|CARPA_floor|Pool_deck|Mas_floor|Mas_rugs|Sala_floor)/.test(n)) o.castShadow = false;
+  o.material = [].concat(o.material).map(m => {
+    if (MAP[m.name]) { const [id, tint] = MAP[m.name]; return matCache[m.name] ||= pbr(id, 1, 1, tint ? { color: tint } : {}); }
+    if (ACG[m.name]) { const [id, tint] = ACG[m.name]; return matCache[m.name] ||= acg(id, { color: tint }); }
+    if (m.name === 'Glass') { m.emissive.set(0xffb866); m.roughness = .08; m.envMapIntensity = 1.5; glowMats.add(m); }
+    if (m.name === 'Lamp') lampMats.add(m);
+    if (m.name === 'Fire') fireMats.add(m);
+    if (m.name === 'Water') return matCache.Water ||= S({ color: 0x1f8796, roughness: .04, metalness: .15, envMapIntensity: 1.6 });
+    if (m.name === 'LakeWater') return matCache.Lake ||= S({ color: 0x34584e, roughness: .05, metalness: .2, envMapIntensity: 1.3 });
+    if (m.name === 'Canvas') return canvasMat;
+    if (m.name === 'Fence' || m.name === 'Net') { m.transparent = true; m.opacity = m.name === 'Fence' ? .42 : .7; m.depthWrite = false; o.castShadow = false; return m; }
+    if (/searsia|leaves|twigs/.test(m.name)) return leafMat;
+    if (VEG[m.name]) return matCache['veg' + m.name] ||= S({ color: VEG[m.name][0], roughness: VEG[m.name][1], side: THREE.DoubleSide });
+    if (m.name === 'planter_pot_clay') return matCache.pot ||= S({ color: 0xa5583a, roughness: .85 });
+    if (m.name === 'PalmLeaf' || m.name === 'Reed') { m.side = THREE.FrontSide; }
+    return m; });
+  if (o.material.length === 1) o.material = o.material[0]; });
+scene.add(venue.scene);
+const masUpGroup = new THREE.Group(), masRoofGroup = new THREE.Group(); scene.add(masUpGroup, masRoofGroup);
+G.masUp.forEach(o => masUpGroup.attach(o)); G.masRoof.forEach(o => masRoofGroup.attach(o));
+
+/* ---------- trees: billboards rendered from Poly Haven scans (Mas Gelabert pipeline), cypresses instanced ---------- */
+{
+  // realism pass: Cycles-rendered billboards of the full-canopy veg.py models (stone pine, holm oak, olive, fruit, cypress)
+  const lists = {}; for (const t of TREES.trees) (lists[t.s] ||= []).push(t);
+  lists.fruit = (lists.fruit || []).concat(TREES.orchard);
+  lists.cypress = (lists.cypress || []).concat(TREES.cypress.map(c => ({ ...c, r: (c.x * 7.3) % 6.28 })));
+  for (const [name, sp] of Object.entries(TREES.species)) {
+    const side = tl.load(`${AS}trees/${name}_side.png`), top = tl.load(`${AS}trees/${name}_top.png`); side.colorSpace = top.colorSpace = THREE.SRGBColorSpace; side.anisotropy = top.anisotropy = ANISO;
+    const q = sp.q, pos = [], uv = [], idx = [];
+    for (const [ang, flip] of [[0, 1], [0, -1], [Math.PI / 2, 1], [Math.PI / 2, -1]]) { const c = Math.cos(ang), s = Math.sin(ang), b = pos.length / 3, ox = -sp.ox / sp.h;
+      for (const [u, v] of [[0, 0], [1, 0], [1, 1], [0, 1]]) { const lx = (u - .5) * q * flip + ox * flip; pos.push(lx * c, v * q, lx * s); uv.push(u, v); }
+      idx.push(b, b + 1, b + 2, b, b + 2, b + 3); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(pos.map((_, i) => i % 3 === 1 ? 1 : 0), 3)); g.setIndex(idx);
+    const tg = new THREE.PlaneGeometry(sp.tq, sp.tq).rotateX(-Math.PI / 2).translate(0, .7, 0);
+    const mk = (list, color) => { if (!list.length) return; const o = { alphaTest: .4, roughness: 1, color };
+      const ms = list.map(t => Mx(t.x, 0, t.z, t.r, t.h, t.h, t.h));
+      inst(g, S({ map: side, ...o }), ms, scene); const tm = inst(tg, S({ map: top, side: THREE.DoubleSide, ...o }), ms, scene, false); tm.receiveShadow = false; };
+    mk(lists[name] || [], new THREE.Color(1.25, 1.25, 1.2));
+  }
+}
+
+/* ---------- lights & sky ---------- */
+const sun = new THREE.DirectionalLight(0xffffff, 3); sun.castShadow = true; sun.shadow.mapSize.set(mobile ? 2048 : 4096, mobile ? 2048 : 4096);
+Object.assign(sun.shadow.camera, { left: -80, right: 80, top: 80, bottom: -80, near: 10, far: 520 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .05; sun.target.position.set(0, 0, 0); scene.add(sun, sun.target);
+const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x6b7a45, 1); scene.add(hemi);
+const zoneLights = [...Array(6)].map(() => { const l = new THREE.PointLight(0xffb469, 0, 30, 1.7); scene.add(l); return l; });
+const salaLights = [-31, -26, -21].map(x => { const l = new THREE.PointLight(0xffb469, 0, 16, 1.6); l.position.set(x, 3.4, -14.5); scene.add(l); return l; });
+const fixedLights = [[0, 2.7, 9.5], [-12, 2.4, 0], [24, 2.6, -2], [-5.5, 2.4, 3], [7, 2.4, 3]].map(p => { const l = new THREE.PointLight(0xffb469, 0, 16, 1.7); l.position.set(...p); scene.add(l); return l; });
+const roomLights = [[-5.6, 2.2, 3], [6.6, 2.2, 3], [-5.6, 2.2, -3], [5, 2.2, -3]].map(p => { const l = new THREE.PointLight(0xffc88a, 0, 9, 1.4); l.position.set(...p); scene.add(l); return l; });
+const SKIES = { day: ['kloofendal_48d_partly_cloudy_puresky', .5951], sunset: ['belfast_sunset_puresky', .6049], night: ['qwantani_night_puresky', .783] }, skyCache = {};
+function loadSky(k) { if (!skyCache[k]) { const [f] = SKIES[k]; skyCache[k] = Promise.all([rgbe.loadAsync(`${AS}hdri/${f}_2k.hdr`), rgbe.loadAsync(`${AS}hdri/${f}_env.hdr`)]).then(([bg, env]) => { bg.mapping = env.mapping = THREE.EquirectangularReflectionMapping; return { bg, env }; }); } return skyCache[k]; }
+const TIMES = {
+  day:    { el: 48, az: -38, exp: .8, sunC: 0xfff1da, sunI: 4.2, hemiI: .5, sky: 0xbfd8ff, gnd: 0x6b7a45, env: .7, bgI: .8, fog: 0xc6d6e4, fogD: .00016, bulb: [1, .92, .7], pl: 0, sala: 6, bloom: 0, glow: 0, canvas: 0 },
+  sunset: { el: 9, az: -62, exp: .62, sunC: 0xffa25c, sunI: 3, hemiI: .22, sky: 0xffc9a8, gnd: 0x4b4a36, env: .6, bgI: .9, fog: 0xd9bfb4, fogD: .0002, bulb: [5, 3.3, 1.5], pl: 20, sala: 18, bloom: .1, glow: 1.2, canvas: .05 },
+  night:  { el: 55, az: 30, exp: .88, sunC: 0x93a8d6, sunI: .35, hemiI: .1, sky: 0x2a3558, gnd: 0x10140c, env: .035, bgI: .05, fog: 0x070b18, fogD: .0003, bulb: [4.2, 2.9, 1.3], pl: 30, sala: 22, bloom: .38, glow: 1.1, canvas: .07 }
+};
+let timeReq = 0;
+async function setTime(k) {
+  state.time = k; const t = TIMES[k], req = ++timeReq, { bg, env } = await loadSky(k); if (req !== timeReq) return;
+  const az = THREE.MathUtils.degToRad(t.az), dir = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - t.el), az);
+  const rot = (SKIES[k][1] - .5) * Math.PI * 2 - (Math.PI / 2 - az);
+  scene.background = bg; scene.environment = env; scene.backgroundRotation.y = scene.environmentRotation.y = rot; scene.backgroundIntensity = t.bgI; scene.environmentIntensity = t.env;
+  sun.position.copy(dir).multiplyScalar(220).add(sun.target.position); sun.color.set(t.sunC); sun.intensity = t.sunI;
+  hemi.color.set(t.sky); hemi.groundColor.set(t.gnd); hemi.intensity = t.hemiI; scene.fog.color.set(t.fog); scene.fog.density = t.fogD;
+  renderer.toneMappingExposure = t.exp; bloom.enabled = t.bloom > 0; bloom.strength = t.bloom;
+  bulbMat.color.setRGB(...t.bulb); flameMat.color.setRGB(t.bulb[0] * .8, t.bulb[1] * .7, t.bulb[2] * .5);
+  glowMats.forEach(m => m.emissiveIntensity = t.glow); lampMats.forEach(m => m.emissiveIntensity = 1 + t.glow * 3); fireMats.forEach(m => m.emissiveIntensity = 1 + t.glow * 2);
+  canvasMat.emissiveIntensity = L && L.carpa ? t.canvas : 0;
+  applyLights(); updateUI();
+}
+function applyLights() { const t = TIMES[state.time];
+  zoneLights.forEach(l => l.intensity = L && L.banquet !== 'sala' ? t.pl : 0); fixedLights.forEach(l => l.intensity = t.pl * .5);
+  salaLights.forEach(l => l.intensity = L && L.banquet === 'sala' ? t.sala : t.sala * .3);
+  roomLights.forEach(l => l.intensity = ex.interior ? 6 + t.pl * .4 : 0);
+  const carpaK = L && L.banquet === 'carpa' ? .55 : 1; zoneLights.forEach(l => l.intensity *= carpaK); }
+
+/* ---------- weekend layout (site/layout.js, shared with the Cycles renders) ---------- */
+const state = { guests: GUESTS.def, step: 'cer', rain: false, time: 'sunset', view: 'step', lang: 'es', explode: 0 };
+const dayOf = () => STEP_DAY[state.step];
+const PG = { chair: prop('Chair'), round: prop('TableRound'), long: prop('TableLong'), high: prop('TableHigh'), plate: prop('Plate'), glass: prop('Glass'), vase: prop('Vase'), cLeaf: prop('Center_leaves'), cFlower: prop('Center_flowers'), garland: prop('Garland'),
+  arch: prop('ArchWood'), archL: prop('Arch_leaves'), archF: prop('Arch_flowers'), bar: prop('Bar'), umb: prop('Umbrella'), umbP: prop('UmbrellaPole') };
+const candleGeo = new THREE.CylinderGeometry(.022, .022, .16, 6), icoGeo = new THREE.IcosahedronGeometry(1, 1), bulbGeo = new THREE.SphereGeometry(.042, 8, 6);
+const layout = new THREE.Group(); scene.add(layout);
+let L = null;
+function buildLayout() {
+  layout.traverse(o => { if (o.isInstancedMesh) o.dispose(); if (o.isLineSegments || o.userData.own) o.geometry.dispose(); }); layout.clear();
+  L = computeLayout({ guests: state.guests, day: dayOf(), rain: state.rain });
+  const m = (a) => a.map(MI);
+  inst(PG.chair, whiteMat, m(L.chairs), layout); inst(PG.chair, whiteMat, m(L.cerChairs), layout);
+  inst(PG.round, clothMat, m(L.round), layout); inst(PG.long, clothMat, m(L.long), layout); inst(PG.high, clothMat, m(L.high), layout);
+  inst(PG.vase, plateMat, m(L.centers), layout); inst(PG.cLeaf, leafMat, m(L.centers), layout); inst(PG.cFlower, flowerMat, m(L.centers), layout, false);
+  inst(PG.garland, leafMat, m(L.garlands), layout); inst(PG.plate, plateMat, m(L.plates), layout, false); inst(PG.glass, glassMat, m(L.glasses), layout, false);
+  inst(candleGeo, flameMat, m(L.candles), layout, false); { const bq = L.flowers.concat(L.petals).map(([x, y, z, r, sx, sy, sz]) => { const k = Math.max(sx, sz) / .16 * 1.25; return Mx(x, y - sy - .26 * k + .03, z, r + x * 3.1, k, k, k); });
+    inst(PG.cLeaf, leafMat, bq, layout, false); inst(PG.cFlower, flowerMat, bq, layout, false); }
+  inst(PG.arch, woodMat, m(L.arch), layout); inst(PG.archL, leafMat, m(L.arch), layout); inst(PG.archF, flowerMat, m(L.arch), layout, false);
+  inst(PG.bar, woodMat, m(L.bars), layout); inst(PG.umb, canvasMat, m(L.umbrellas), layout); inst(PG.umbP, woodMat, m(L.umbrellas), layout);
+  inst(bulbGeo, bulbMat, m(L.bulbs), layout, false); inst(unit, woodMat, m(L.poles), layout);
+  if (L.wire.length) layout.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(L.wire, 3)), wireMat));
+  if (L.dance) { const d = new THREE.Mesh(new THREE.BoxGeometry(L.dance.s, .08, L.dance.s), danceMat); d.userData.own = true; d.position.set(L.dance.x, L.banquet === 'carpa' ? .19 : .1, L.dance.z); d.receiveShadow = true; layout.add(d); }
+  if (L.aisle) { const a = new THREE.Mesh(new THREE.PlaneGeometry(L.aisle.w, L.aisle.d).rotateX(-Math.PI / 2), ivoryMat); a.userData.own = true; a.position.set(L.aisle.x, .03, L.aisle.z); a.receiveShadow = true; layout.add(a); }
+  G.carpa.forEach(o => o.visible = L.carpa); G.net.forEach(o => o.visible = !L.carpa);
+  canvasMat.emissiveIntensity = L.carpa ? TIMES[state.time].canvas : 0;
+  // warm fill lights over the banquet / dinner
+  const A = L.area || { x: 0, z: 0, w: 4, d: 4 }, lw = Math.max(3, A.w * .32), ld = Math.max(2, A.d * .3), ly = L.banquet === 'carpa' ? 4.2 : 2.6;
+  [[-1, -1], [0, -1], [1, -1], [-1, 1], [0, 1], [1, 1]].forEach(([a, b], i) => zoneLights[i].position.set(A.x + a * lw, ly, A.z + b * ld));
+  applyLights(); updateUI();
+}
+
+/* ---------- labels (hotspots): facts from masxibeques.es ---------- */
+const TAGS = [
+  { id: 'masia', p: [0, 12.6, 0] }, { id: 'porch', p: [0, 4.2, 9], minor: true }, { id: 'pergola', p: [-25, 4.6, 5.5] }, { id: 'bbq', p: [-14.2, 3.9, 12.5], minor: true },
+  { id: 'sala', p: [-26, 8.4, -14.5] }, { id: 'apts', p: [24, 6.4, -4.5] }, { id: 'pool', p: [17, 2.2, 21] }, { id: 'orchard', p: [-44, 4.6, 40] },
+  { id: 'tennis', p: [40, 4.6, -30] }, { id: 'lake', p: [-52, 2.4, -40] }, { id: 'parking', p: [1, 2.2, -16], minor: true },
+  ...TREES.rooms.map(r => ({ id: 'room', n: r.n, mode: 'rooms', p: [r.x, 6.4, -r.y], lift: true })),
+  { id: 'apt1', mode: 'rooms', p: [20, 5.2, -4.5] }, { id: 'apt2', mode: 'rooms', p: [28, 5.2, -4.5] },
+  { id: 'dining', mode: 'interior', p: [-5.6, 2.2, 3] }, { id: 'lounge', mode: 'interior', p: [7.5, 2.0, 3] }, { id: 'kitchen', mode: 'interior', p: [-5.6, 2.0, -3] }, { id: 'lounge2', mode: 'interior', p: [5, 2.0, -3] },
+];
+const tagBox = $('#tags');
+TAGS.forEach(t => { t.el = document.createElement('div'); t.el.className = 'tag' + (t.mode === 'rooms' ? ' room' : ''); t.el.onclick = () => openCard(t); tagBox.append(t.el); t.v = new THREE.Vector3(...t.p); });
+const pv = new THREE.Vector3();
+function placeTags() { const w = innerWidth, h = innerHeight, d = camera.position.distanceTo(controls.target);
+  for (const t of TAGS) { const mode = t.mode || 'site', viewMode = ['rooms', 'interior'].includes(state.view) ? state.view : 'site';
+    pv.copy(t.v); if (t.lift) pv.y += state.explode * 3.2; pv.project(camera);
+    const vis = !tour.on && !(t.minor && mobile) && mode === viewMode && pv.z < 1 && Math.abs(pv.x) < 1.05 && Math.abs(pv.y) < 1.05 && (mode !== 'site' || d > 34 || camera.position.distanceTo(t.v) < 45) && (mode !== 'rooms' || state.explode > .9);
+    t.el.classList.toggle('far', !vis); if (vis) { t.el.style.left = ((pv.x + 1) / 2 * w).toFixed(1) + 'px'; t.el.style.top = ((1 - pv.y) / 2 * h - 14).toFixed(1) + 'px'; } } }
+function openCard(t) { const T = I[state.lang], c = t.id === 'room' ? T.cards.room(t.n) : T.cards[t.id]; $('#cardBody').innerHTML = `<p class="k">${c.k}</p><h3>${c.h}</h3>${c.b}<p class="src">${T.src}</p>`; $('#card').classList.add('show'); stopTour(); }
+$('#cardX').onclick = () => $('#card').classList.remove('show');
+const closeVid = () => { $('#vidEl').pause(); $('#vid').classList.remove('show'); }; $('#vidX').onclick = closeVid; $('#vid').onclick = (e) => { if (e.target.id === 'vid') closeVid(); };
+
+/* ---------- camera ---------- */
+const ex = { to: 0, interior: false };
+let tw = null; const tour = { on: false, t: 0, i: 0 };
+const TOUR = ['aerial', 'fri', 'cer', 'ape', 'ban', 'dance', 'sun', 'rooms', 'interior', 'tennis'];
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const STEP_TIME = { fri: 'night', cer: 'sunset', ape: 'sunset', ban: 'night', dance: 'night', sun: 'day' };
+function viewPose(v) { const narrow = camera.aspect < .8, k = narrow ? 1.45 : 1;
+  switch (v) {
+    case 'fri': return [V(-12.5, 3.4 * k, 15 + 3 * k), V(-26, 1.4, 4.6)];
+    case 'cer': { const rows = Math.ceil(state.guests / 14); return [V(CEREMONY.x + .6, 2.3, CEREMONY.z + 3.5 + rows * .95 + (narrow ? 10 : 6)), V(CEREMONY.x, 2.2, CEREMONY.z - 8)]; }
+    case 'ape': return [V(3.5, 3.0 * k, 45 + 3 * k), V(19, .8, 30)];
+    case 'ban': case 'dance': {
+      const b = L.banquet;
+      if (b === 'sala') return narrow ? [V(-26, 27, 1), V(-26, 0, -14)] : [V(-25, 19, 2.5), V(-26, 0, -14)];
+      if (b === 'carpa') return v === 'dance' ? [V(43.5, 2.2, -26), V(39, 1.2, -41)] : [V(41.6, 2.4, -14.6), V(39.5, 1.3, -33)];
+      return v === 'dance' ? [V(-20, 2.2, 1.6), V(-31.5, 1, 6.4)] : [V(-13.4, 2.6 * k, 12.8 + 2 * k), V(-25, 1.3, 4.8)]; }
+    case 'sun': return [V(3.5, 3.0 * k, 41 + 3 * k), V(19, .9, 27)];
+    case 'rooms': return narrow ? [V(22, 40, 40), V(1, 5, 0)] : [V(19, 26, 27), V(1, 5.5, 0)];
+    case 'interior': return narrow ? [V(5, 28, 22), V(0, 0, 1)] : [V(4, 17.5, 15), V(0, 0, 1.2)];
+    case 'sala': return narrow ? [V(-26, 27, 1), V(-26, 0, -14)] : [V(-25, 19, 2.5), V(-26, 0, -14)];
+    case 'pool': return [V(5, 3.6, 45), V(19, 1.5, 20)];
+    case 'lake': return narrow ? [V(-36, 11, -18), V(-53, 0, -41)] : [V(-38, 7, -21), V(-53, .5, -41)];
+    case 'tennis': return narrow ? [V(40, 26, 6), V(40, 0, -30)] : [V(41, 15, -1), V(40, 1, -31)];
+    default: return narrow ? [V(-95, 120, 175), V(-4, 0, -4)] : [V(-78, 70, 118), V(-4, 0, -6)];
+  } }
+const STEPV = new Set(STEPS);
+function go(v, dur = 2) { state.view = STEPV.has(v) ? 'step' : v; if (STEPV.has(v)) state.step = v;
+  const explode = v === 'rooms' ? 1 : 0, interior = v === 'interior', salaOpen = v === 'sala' || ((v === 'ban' || v === 'dance') && L && L.banquet === 'sala');
+  ex.to = explode; ex.interior = interior; applyLights(); G.cane.forEach(o => o.visible = !interior); G.salaRoof.forEach(o => o.visible = !salaOpen);
+  const [p, t] = viewPose(v); tw = { p0: camera.position.clone(), t0: controls.target.clone(), p1: p, t1: t, k: 0, dur };
+  document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === (tour.on ? 'tour' : v)));
+  const T = I[state.lang]; const bn = $('#banner'); bn.textContent = T.banner[v] || ''; bn.classList.toggle('show', !!T.banner[v]);
+  updateUI(); }
+function stopTour() { if (tour.on) { tour.on = false; controls.autoRotate = false; document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === state.view)); } }
+canvas.addEventListener('pointerdown', () => { stopTour(); tw = null; }); canvas.addEventListener('wheel', () => { stopTour(); tw = null; }, { passive: true });
+
+/* ---------- planner ---------- */
+function setStep(s, dur = 2.2) {
+  const dayChanged = !L || STEP_DAY[s] !== dayOf(); state.step = s;
+  if (dayChanged) buildLayout();
+  setTime(STEP_TIME[s]); go(s, dur);
+}
+
+/* ---------- UI text (ES / EN) ---------- */
+const SRC_ES = 'Datos: masxibeques.es. Volúmenes, posiciones y medidas en 3D: estimación.', SRC_EN = 'Facts: masxibeques.es. 3D volumes, positions and sizes: estimated.';
+const CARDS_ES = {
+  masia: { k: 'Uso exclusivo', h: 'La masía', b: '<p>Masía privada en plena naturaleza, en el corazón del Empordà, de uso exclusivo para el grupo.</p><ul><li>8 habitaciones con baño privado, hasta 22 personas</li><li>Amplios salones y dos chimeneas</li><li>Comedor con techo de bóveda catalana</li></ul><p>No hay foto exterior clara de la casa: su volumen en 3D es una <b>estimación</b>. Pulsa «Habitaciones» o «Interior».</p>' },
+  porch: { k: 'Terraza', h: 'Porche de madera y caña', b: '<p>Terraza de barro cocido con sofás de ratán bajo un porche de madera y caña.</p>' },
+  pergola: { k: 'Cena del viernes · banquete', h: 'Pérgola de caña', b: '<p>Pérgola con techo de caña y guirnaldas de luz sobre la mesa de la cena.</p><p>En la demo: cena de bienvenida del viernes y banquete del sábado hasta 60 invitados (capacidad de la pérgola estimada).</p>' },
+  bbq: { k: 'Exterior', h: 'Zona de barbacoa', b: '<p>La finca tiene zona de barbacoa. Posición y forma en 3D estimadas.</p>' },
+  sala: { k: '60 sentados · 80 de pie', h: 'Sala polivalente', b: '<p>Espacio cubierto con luces cálidas: <b>60 personas sentadas u 80 de pie</b>.</p><p>En la demo es el plan B si llueve (pulsa «Sala (lluvia)»).</p>' },
+  apts: { k: '2 × 4 personas', h: 'Apartamentos anexos', b: '<p>Dos apartamentos anexos de 4 personas cada uno.</p><p><b>22 en la masía + 8 en apartamentos = 30 camas.</b></p>' },
+  pool: { k: 'Domingo · brunch', h: 'Piscina de agua salada', b: '<p>Piscina de agua salada rodeada de naturaleza, con palmeras y césped.</p><p>En la demo: aperitivo del sábado en el césped y brunch del domingo junto a la piscina.</p>' },
+  orchard: { k: 'Sábado · ceremonia', h: 'Ceremonia entre frutales', b: '<p>Espacio de ceremonia entre árboles frutales, con zonas diferenciadas para ceremonia, aperitivo, cena y baile.</p>' },
+  tennis: { k: 'Entre bosque', h: 'Pista de tenis', b: '<p>Pista de tenis rodeada de bosque, que también se usa para carpas y celebraciones al aire libre.</p><p>En la demo, con más de 60 invitados aparece una <b>carpa</b> sobre la pista (tamaño y capacidad estimados).</p>' },
+  lake: { k: 'Naturaleza', h: 'Lago natural', b: '<p>Lago natural, caminos, amplios jardines y campos alrededor de la finca.</p>' },
+  parking: { k: 'Logística', h: 'Parking dentro de la finca', b: '<ul><li>Parking dentro de la finca</li><li>Cocina de apoyo para el catering</li><li>Baños exteriores para invitados</li><li>2 personas de la casa durante el día del evento</li><li>Sin límite de música ni de horario: la finca está rodeada de campos</li></ul>' },
+  room: (n) => ({ k: `Habitación ${n} de 8`, h: 'Habitación con baño privado', b: '<p>La masía tiene 8 habitaciones con baño privado y aloja hasta 22 personas; con los 2 apartamentos (4 + 4), <b>30 camas</b> en total.</p><p>Distribución de la planta y mobiliario: estimación.</p>' }),
+  apt1: { k: 'Anexo', h: 'Apartamento 1', b: '<p>Apartamento anexo para 4 personas.</p>' }, apt2: { k: 'Anexo', h: 'Apartamento 2', b: '<p>Apartamento anexo para 4 personas.</p>' },
+  dining: { k: 'Planta baja', h: 'Comedor con bóveda catalana', b: '<p>Comedor con techo de bóveda catalana de ladrillo, mesa larga de madera y lámpara de araña, con una de las dos chimeneas.</p>' },
+  lounge: { k: 'Planta baja', h: 'Salón con chimenea', b: '<p>Salón con sofá Chesterfield junto a la segunda chimenea. Suelos de madera oscura y paredes blancas.</p>' },
+  kitchen: { k: 'Planta baja', h: 'Cocina', b: '<p>Cocina con azulejo verde. Para el evento hay además cocina de apoyo para el catering.</p>' },
+  lounge2: { k: 'Planta baja', h: 'Salón', b: '<p>La casa tiene amplios salones. Distribución interior: estimación.</p>' },
+};
+const CARDS_EN = {
+  masia: { k: 'Exclusive use', h: 'The farmhouse', b: '<p>Private masía in the middle of nature, in the heart of the Empordà, for the exclusive use of your group.</p><ul><li>8 bedrooms with private bathroom, up to 22 people</li><li>Large lounges and two fireplaces</li><li>Dining room with a Catalan brick vault</li></ul><p>There is no clear exterior photo of the house: its 3D volume is an <b>estimate</b>. Try “Rooms” or “Interior”.</p>' },
+  porch: { k: 'Terrace', h: 'Timber-and-cane porch', b: '<p>Terracotta terrace with rattan sofas under a timber-and-cane porch.</p>' },
+  pergola: { k: 'Friday dinner · banquet', h: 'Cane pergola', b: '<p>Pergola with a cane roof and festoon lights over the dinner table.</p><p>In the demo: Friday welcome dinner and Saturday banquet for up to 60 guests (pergola capacity estimated).</p>' },
+  bbq: { k: 'Outdoors', h: 'Barbecue area', b: '<p>The estate has a barbecue area. 3D position and shape estimated.</p>' },
+  sala: { k: '60 seated · 80 standing', h: 'Multi-purpose hall', b: '<p>Covered space with warm lights: <b>60 seated or 80 standing</b>.</p><p>In the demo it is the rain plan (click “Hall (rain)”).</p>' },
+  apts: { k: '2 × 4 guests', h: 'Annex apartments', b: '<p>Two annex apartments for 4 guests each.</p><p><b>22 in the house + 8 in apartments = 30 beds.</b></p>' },
+  pool: { k: 'Sunday · brunch', h: 'Saltwater pool', b: '<p>Saltwater pool surrounded by countryside, with palm trees and lawn.</p><p>In the demo: Saturday drinks on the lawn and Sunday brunch by the pool.</p>' },
+  orchard: { k: 'Saturday · ceremony', h: 'Ceremony among fruit trees', b: '<p>Ceremony space among fruit trees, with separate areas for ceremony, drinks, dinner and dancing.</p>' },
+  tennis: { k: 'In the woods', h: 'Tennis court', b: '<p>Tennis court surrounded by woodland, also used for marquees and outdoor celebrations.</p><p>In the demo, above 60 guests a <b>marquee</b> appears on the court (size and capacity estimated).</p>' },
+  lake: { k: 'Nature', h: 'Natural lake', b: '<p>Natural lake, paths, wide gardens and fields around the estate.</p>' },
+  parking: { k: 'Logistics', h: 'Parking inside the estate', b: '<ul><li>Parking inside the estate</li><li>Support kitchen for the caterer</li><li>Outdoor guest toilets</li><li>2 staff members on the day of the event</li><li>No music or time limits: the estate is surrounded by fields</li></ul>' },
+  room: (n) => ({ k: `Bedroom ${n} of 8`, h: 'Bedroom with private bathroom', b: '<p>The house has 8 bedrooms with private bathroom and sleeps up to 22; with the 2 apartments (4 + 4), <b>30 beds</b> in total.</p><p>Floor layout and furniture: estimated.</p>' }),
+  apt1: { k: 'Annex', h: 'Apartment 1', b: '<p>Annex apartment for 4 guests.</p>' }, apt2: { k: 'Annex', h: 'Apartment 2', b: '<p>Annex apartment for 4 guests.</p>' },
+  dining: { k: 'Ground floor', h: 'Vaulted dining room', b: '<p>Dining room with a Catalan brick vault, a long wooden table and a chandelier, with one of the two fireplaces.</p>' },
+  lounge: { k: 'Ground floor', h: 'Lounge with fireplace', b: '<p>Lounge with a Chesterfield sofa by the second fireplace. Dark timber floors and white walls.</p>' },
+  kitchen: { k: 'Ground floor', h: 'Kitchen', b: '<p>Green-tiled kitchen. For events there is also a support kitchen for the caterer.</p>' },
+  lounge2: { k: 'Ground floor', h: 'Lounge', b: '<p>The house has large lounges. Interior layout: estimated.</p>' },
+};
+const STEP_ES = {
+  fri: ['Viernes · cena de bienvenida', (g) => `Cena bajo la pérgola de caña y las guirnaldas para quienes se alojan: ${g} personas (hasta 30 camas).`],
+  cer: ['Sábado · ceremonia', (g) => `Entre los árboles frutales, a la hora dorada. ${g} sillas.`],
+  ape: ['Sábado · aperitivo', () => 'En el césped junto a la piscina de agua salada, con mesas altas y barra.'],
+  ban: ['Sábado · banquete', (g, sp) => ({ pergola: `Bajo la pérgola de caña: ${g} invitados en mesas imperiales.`, sala: `Plan B: la Sala polivalente con ${g} invitados (máx. 60 sentados).`, carpa: `Más de 60 invitados: carpa sobre la pista de tenis, entre bosque. ${g} invitados en mesas redondas.` })[sp]],
+  dance: ['Sábado · baile', (g, sp) => sp === 'sala' ? 'Tras la cena, la sala se convierte en pista de baile. Sin límite de música ni de horario.' : 'Pista de baile junto al banquete. Sin límite de música ni de horario: la finca está rodeada de campos.'],
+  sun: ['Domingo · brunch en la piscina', (g) => `Brunch junto a la piscina para quienes se alojan: ${g} personas.`],
+};
+const STEP_EN = {
+  fri: ['Friday · welcome dinner', (g) => `Dinner under the cane pergola and festoons for those staying: ${g} people (up to 30 beds).`],
+  cer: ['Saturday · ceremony', (g) => `Among the fruit trees, at golden hour. ${g} chairs.`],
+  ape: ['Saturday · drinks', () => 'On the lawn by the saltwater pool, with high tables and a bar.'],
+  ban: ['Saturday · banquet', (g, sp) => ({ pergola: `Under the cane pergola: ${g} guests at long tables.`, sala: `Rain plan: the multi-purpose hall with ${g} guests (max. 60 seated).`, carpa: `More than 60 guests: a marquee on the tennis court, in the woods. ${g} guests at round tables.` })[sp]],
+  dance: ['Saturday · dancing', (g, sp) => sp === 'sala' ? 'After dinner the hall becomes the dance floor. No music or time limits.' : 'Dance floor next to the banquet. No music or time limits: the estate is surrounded by fields.'],
+  sun: ['Sunday · pool brunch', (g) => `Brunch by the pool for those staying: ${g} people.`],
+};
+const I = {
+  es: { loading: 'Preparando la finca…', sub: 'Bàscara · Empordà · Tour 3D', intro: 'Masía privada en plena naturaleza, de uso exclusivo. Recorre aquí tu fin de semana de boda, de la cena del viernes al brunch del domingo.',
+    mnote: 'Demo orientativa · casa, plano y medidas aproximados', hPlanner: 'Tu fin de semana de boda', fri: 'Viernes', sat: 'Sábado', sun: 'Domingo', m: { fri: 'Cena', cer: 'Ceremonia', ape: 'Aperitivo', ban: 'Banquete', dance: 'Baile', sun: 'Brunch' },
+    hGuests: 'Invitados', guestsUnit: 'personas', rain: 'Plan B lluvia: banquete en la Sala polivalente', rainOff: 'Con más de 60 invitados, la carpa ya cubre el banquete',
+    where: { pergola: 'Banquete bajo la pérgola de caña', sala: 'Banquete en la Sala polivalente (plan B)', carpa: 'Banquete en carpa sobre la pista de tenis' },
+    salaCap: 'Sala polivalente · sentados / de pie', chairs: 'sillas en el banquete', chairsFri: 'en la cena del viernes', chairsSun: 'en el brunch', bHouse: 'en la masía', bApts: 'en apartamentos', bTot: 'camas', bNote: '8 habitaciones con baño privado + 2 apartamentos de 4 personas',
+    hTime: 'Luz', day: 'Día', sunset: 'Atardecer', night: 'Noche',
+    note: 'Demo orientativa creada por Yahya a partir de la información pública de Mas Xibeques. El exterior de la casa, el plano de la finca, las medidas y la capacidad de la carpa son aproximados.', cta: 'Hablemos de esta demo', credit: 'Modelo 3D no oficial · texturas CC0 (Poly Haven, ambientCG)',
+    vAerial: 'Vista aérea', vRooms: 'Habitaciones', vInterior: 'Interior', vSala: 'Sala (lluvia)', vPool: 'Piscina', vLake: 'Lago', vTennis: 'Pista de tenis', vTour: '▶ Tour', vVideo: '▶ Vídeo', hint: 'Arrastra para girar · rueda para acercar · toca las etiquetas',
+    banner: { rooms: '8 habitaciones con baño privado (22 personas) + 2 apartamentos (8) = 30 camas · toca un número', interior: 'Planta baja: comedor con bóveda catalana y dos chimeneas · distribución estimada', sala: 'Plan B lluvia · Sala polivalente: 60 sentados / 80 de pie' },
+    tag: { masia: 'Masía', porch: 'Porche', pergola: 'Pérgola', bbq: 'Barbacoa', sala: 'Sala polivalente', apts: 'Apartamentos', pool: 'Piscina de agua salada', orchard: 'Frutales · ceremonia', tennis: 'Pista de tenis', lake: 'Lago natural', parking: 'Parking', apt1: 'Apartamento 1 · 4', apt2: 'Apartamento 2 · 4', dining: 'Comedor', lounge: 'Salón · chimenea', kitchen: 'Cocina', lounge2: 'Salón' },
+    room: (n) => `Hab. ${n}`, cards: CARDS_ES, steps: STEP_ES, src: SRC_ES,
+    mailS: 'Demo 3D Mas Xibeques', mailB: (s) => `Hola Yahya,\n\nHe visto la demo 3D de Mas Xibeques. Estaba mirando:\n\n· Invitados: ${s.g}\n· Banquete: ${s.w}\n\n` },
+  en: { loading: 'Preparing the estate…', sub: 'Bàscara · Empordà · 3D tour', intro: 'Private farmhouse in the middle of nature, for exclusive use. Walk through your wedding weekend, from Friday dinner to Sunday brunch.',
+    mnote: 'Indicative demo · house, plan and sizes approximate', hPlanner: 'Your wedding weekend', fri: 'Friday', sat: 'Saturday', sun: 'Sunday', m: { fri: 'Dinner', cer: 'Ceremony', ape: 'Drinks', ban: 'Banquet', dance: 'Dancing', sun: 'Brunch' },
+    hGuests: 'Guests', guestsUnit: 'people', rain: 'Rain plan: banquet in the multi-purpose hall', rainOff: 'Above 60 guests the marquee already covers the banquet',
+    where: { pergola: 'Banquet under the cane pergola', sala: 'Banquet in the multi-purpose hall (rain plan)', carpa: 'Banquet in a marquee on the tennis court' },
+    salaCap: 'Multi-purpose hall · seated / standing', chairs: 'banquet chairs', chairsFri: 'at Friday dinner', chairsSun: 'at brunch', bHouse: 'in the house', bApts: 'in apartments', bTot: 'beds', bNote: '8 bedrooms with private bathroom + 2 apartments for 4',
+    hTime: 'Light', day: 'Day', sunset: 'Sunset', night: 'Night',
+    note: 'Indicative demo made by Yahya from Mas Xibeques\' public information. The house exterior, site plan, sizes and marquee capacity are approximate.', cta: 'Let\'s talk about this demo', credit: 'Unofficial 3D model · CC0 textures (Poly Haven, ambientCG)',
+    vAerial: 'Aerial', vRooms: 'Bedrooms', vInterior: 'Interior', vSala: 'Hall (rain)', vPool: 'Pool', vLake: 'Lake', vTennis: 'Tennis court', vTour: '▶ Tour', vVideo: '▶ Video', hint: 'Drag to orbit · scroll to zoom · tap the labels',
+    banner: { rooms: '8 bedrooms with private bathroom (22 people) + 2 apartments (8) = 30 beds · tap a number', interior: 'Ground floor: vaulted dining room and two fireplaces · layout estimated', sala: 'Rain plan · multi-purpose hall: 60 seated / 80 standing' },
+    tag: { masia: 'Farmhouse', porch: 'Porch', pergola: 'Pergola', bbq: 'Barbecue', sala: 'Multi-purpose hall', apts: 'Apartments', pool: 'Saltwater pool', orchard: 'Orchard · ceremony', tennis: 'Tennis court', lake: 'Natural lake', parking: 'Parking', apt1: 'Apartment 1 · 4', apt2: 'Apartment 2 · 4', dining: 'Dining room', lounge: 'Lounge · fireplace', kitchen: 'Kitchen', lounge2: 'Lounge' },
+    room: (n) => `Room ${n}`, cards: CARDS_EN, steps: STEP_EN, src: SRC_EN,
+    mailS: 'Mas Xibeques 3D demo', mailB: (s) => `Hi Yahya,\n\nI have seen the Mas Xibeques 3D demo. I was looking at:\n\n· Guests: ${s.g}\n· Banquet: ${s.w}\n\n` },
+};
+const DAY_STEPS = { fri: ['fri'], sat: ['cer', 'ape', 'ban', 'dance'], sun: ['sun'] };
+function updateUI() { if (!L) return; const T = I[state.lang], sp = banquetSpace(state.guests, state.rain), day = dayOf();
+  document.documentElement.lang = state.lang; $('#lang').textContent = state.lang === 'es' ? 'EN' : 'ES';
+  document.querySelectorAll('[data-i]').forEach(e => { if (typeof T[e.dataset.i] === 'string') e.textContent = T[e.dataset.i]; });
+  $('#gN').textContent = state.guests;
+  document.querySelectorAll('#days button').forEach(b => b.classList.toggle('on', state.view === 'step' && b.dataset.v === day));
+  $('#moments').innerHTML = DAY_STEPS[day].map(s => `<button data-v="${s}" class="${state.view === 'step' && s === state.step ? 'on' : ''}">${T.m[s]}</button>`).join('');
+  $('#moments').style.display = DAY_STEPS[day].length > 1 ? '' : 'none';
+  const st = T.steps[state.step], g = ['fri', 'sun'].includes(state.step) ? stayGuests(state.guests) : state.guests;
+  $('#stepT').textContent = st[0]; $('#stepP').textContent = st[1](g, sp);
+  $('#where').className = 'where ' + sp; $('#whereT').textContent = T.where[sp];
+  const rb = $('#rain'); rb.classList.toggle('on', state.rain && sp !== 'carpa'); rb.disabled = state.guests > FACTS.salaSeated; rb.querySelector('span').textContent = rb.disabled ? T.rainOff : T.rain;
+  $('#sChairs').textContent = L.chairCount; $('#sChairsL').textContent = day === 'fri' ? T.chairsFri : day === 'sun' ? T.chairsSun : T.chairs;
+  document.querySelectorAll('#time button').forEach(b => b.classList.toggle('on', b.dataset.v === state.time));
+  TAGS.forEach(t => t.el.textContent = t.id === 'room' ? T.room(t.n) : T.tag[t.id]);
+  const bn = $('#banner'); if (bn.classList.contains('show')) bn.textContent = T.banner[state.view] || '';
+  $('#cta').href = 'mailto:' + CONTACT + '?subject=' + encodeURIComponent(T.mailS) + '&body=' + encodeURIComponent(T.mailB({ g: state.guests, w: T.where[sp] }));
+}
+$('#days').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; $('#days').classList.remove('pulse'); stopTour(); $('#card').classList.remove('show'); setStep(DAY_STEPS[b.dataset.v][0]); };
+$('#moments').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; stopTour(); setStep(b.dataset.v); };
+const stepBy = (d) => { stopTour(); const i = STEPS.indexOf(state.step); const j = state.view === 'step' ? (i + d + STEPS.length) % STEPS.length : i; setStep(STEPS[j]); };
+$('#prev').onclick = () => stepBy(-1); $('#next').onclick = () => stepBy(1);
+$('#guests').oninput = (e) => { const before = banquetSpace(state.guests, state.rain); state.guests = +e.target.value; buildLayout();
+  const after = banquetSpace(state.guests, state.rain); if (state.view !== 'step') return;
+  if (before !== after && dayOf() === 'sat' && !['ban', 'dance'].includes(state.step)) setStep('ban', 1.8);
+  else if (before !== after || ['cer', 'ban', 'dance'].includes(state.step)) go(state.step, 1.4); };
+$('#rain').onclick = () => { if ($('#rain').disabled) return; state.rain = !state.rain; if (dayOf() !== 'sat') state.step = 'ban'; buildLayout(); stopTour(); setStep('ban', 1.8); };
+$('#time').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; setTime(b.dataset.v); };
+$('#views').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; $('#card').classList.remove('show'); const v = b.dataset.v;
+  if (v === 'video') { stopTour(); const el = $('#vidEl'); if (!el.src) el.src = 'video/demo.mp4'; $('#vid').classList.add('show'); el.play().catch(() => {}); return; }
+  if (v === 'tour') { tour.on = true; tour.i = 0; tour.t = 0; controls.autoRotate = true; controls.autoRotateSpeed = .45; tourGo(TOUR[0]); return; }
+  stopTour();
+  if (v === 'sala') { if (state.guests > FACTS.salaSeated) { state.guests = FACTS.salaSeated; $('#guests').value = state.guests; } state.rain = true; state.step = 'ban'; buildLayout(); setTime('sunset'); go('sala'); return; }
+  if (v === 'pool' && dayOf() !== 'sun') { state.step = 'sun'; buildLayout(); }
+  if (v === 'rooms' || v === 'interior') setTime(state.time === 'night' ? 'sunset' : state.time); if (v === 'pool' || v === 'lake' || v === 'tennis' || v === 'aerial') setTime('day');
+  go(v); };
+function tourGo(v) { if (STEPV.has(v)) setStep(v, 3); else { setTime(v === 'aerial' || v === 'tennis' ? 'day' : 'sunset'); go(v, 3); } }
+$('#lang').onclick = () => { state.lang = state.lang === 'es' ? 'en' : 'es'; updateUI(); $('#card').classList.remove('show'); };
+
+/* ---------- go ---------- */
+const qp = new URLSearchParams(location.search);
+if (qp.get('lang') && I[qp.get('lang')]) state.lang = qp.get('lang');
+if (qp.get('guests')) state.guests = Math.max(GUESTS.min, Math.min(GUESTS.max, Math.round((+qp.get('guests') || GUESTS.def) / 10) * 10));
+if (qp.get('rain') === '1') state.rain = true;
+$('#guests').value = state.guests;
+const startV = qp.get('view') || 'aerial';
+state.step = STEPV.has(startV) ? startV : 'cer';
+buildLayout(); await setTime(STEPV.has(startV) ? STEP_TIME[startV] : (qp.get('time') && TIMES[qp.get('time')] ? qp.get('time') : 'day'));
+if (STEPV.has(startV)) go(startV, qp.has('view') ? .01 : 3.4); else go(startV, qp.has('view') ? .01 : 3.4);
+const clock = new THREE.Clock(); let first = true, exV = 0, intV = 0;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), .1);
+  if (tw) { tw.k = Math.min(1, tw.k + dt / tw.dur); const e = tw.k < .5 ? 4 * tw.k ** 3 : 1 - (-2 * tw.k + 2) ** 3 / 2; camera.position.lerpVectors(tw.p0, tw.p1, e); controls.target.lerpVectors(tw.t0, tw.t1, e); if (tw.k >= 1) tw = null; }
+  if (tour.on) { tour.t += dt; if (tour.t > 7.5) { tour.t = 0; tour.i = (tour.i + 1) % TOUR.length; tourGo(TOUR[tour.i]); } }
+  // explode (rooms) / open (interior) animation of the masía
+  exV += (ex.to - exV) * Math.min(1, dt * 2.6); intV += ((ex.interior ? 1 : 0) - intV) * Math.min(1, dt * 3);
+  state.explode = exV; masUpGroup.position.y = exV * 3.2 + intV * 14; masUpGroup.visible = intV < .9;
+  masRoofGroup.position.y = exV * 12 + intV * 18; masRoofGroup.visible = exV < .6 && intV < .5;
+  controls.update(); if (camera.position.y < .7) camera.position.y = .7;
+  composer.render(); placeTags();
+  if (first) { first = false; $('#loader').classList.add('done'); }
+});
+window.__tour = { state, go, setStep, setTime, buildLayout, camera, controls, THREE, scene, composer, renderer, viewPose, updateUI, getLayout: () => L, tour };
+</script>
+</body>
+</html>

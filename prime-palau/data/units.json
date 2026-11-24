@@ -1,0 +1,22 @@
+{
+  "_source": "primenordisk.com/promociones/prime-palau, consultado el 23/11/2026. Editar aquí si cambian precios o disponibilidad.",
+  "promo": {
+    "name": "Prime Palau",
+    "developer": "Prime Nordisk",
+    "street": "Carrer de l'Oliva",
+    "town": "Palau-saverdera",
+    "architect": "Joan Vieyra Bosch",
+    "homes": 6,
+    "builtTotal": 1198,
+    "delivery": { "es": "marzo de 2028", "en": "March 2028" },
+    "contactEmail": "yahyaelhmidi11@gmail.com"
+  },
+  "units": [
+    { "id": "A", "price": 540000, "built": 204, "exterior": 144, "plot": 268, "beds": 3, "baths": 3, "status": "disponible" },
+    { "id": "B", "price": 475000, "built": 198, "exterior": 103, "plot": 171, "beds": 3, "baths": 3, "status": "disponible" },
+    { "id": "C", "price": 475000, "built": 198, "exterior": 103, "plot": 171, "beds": 3, "baths": 3, "status": "disponible" },
+    { "id": "D", "price": 475000, "built": 198, "exterior": 104, "plot": 171, "beds": 3, "baths": 3, "status": "disponible" },
+    { "id": "E", "price": 485000, "built": 198, "exterior": 104, "plot": 171, "beds": 3, "baths": 3, "status": "disponible" },
+    { "id": "F", "price": 540000, "built": 203, "exterior": 177, "plot": 260, "beds": 3, "baths": 3, "status": "disponible" }
+  ]
+}

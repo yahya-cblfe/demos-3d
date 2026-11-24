@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mas Jofre · Pals · Tour 3D de bodas y eventos (demo)</title>
+<meta name="description" content="Demo orientativa en 3D de Mas Jofre (Pals, Empordà): configurador de montaje para bodas y eventos.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='9' y='4' width='14' height='26' fill='%23b8a27c'/%3E%3Cpath d='M7 6 16 0 25 6Z' fill='%23b4553a'/%3E%3C/svg%3E">
+<style>
+@font-face{font-family:"Cormorant Garamond";font-weight:600;font-display:swap;src:url(vendor/fonts/cormorant-garamond-600-latin.woff2) format("woff2")}
+@font-face{font-family:Assistant;font-weight:300 800;font-display:swap;src:url(vendor/fonts/assistant-latin.woff2) format("woff2")}
+:root{--ink:#f4efe4;--mute:#c9c2b0;--panel:rgba(30,28,22,.74);--line:rgba(244,239,228,.16);--gold:#d9b46a;--gold-ink:#221a08}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#15130f;color:var(--ink);font-family:Assistant,system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+#loader{position:fixed;inset:0;display:grid;place-items:center;background:#15130f;z-index:20;transition:opacity .9s}
+#loader.done{opacity:0;pointer-events:none}
+#loader div{font:600 34px "Cormorant Garamond",serif;letter-spacing:.08em;text-align:center}
+#loader small{display:block;font:500 12px Assistant;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);margin-top:10px}
+#loader i{display:block;width:160px;height:2px;background:rgba(244,239,228,.15);margin:18px auto 0;overflow:hidden;border-radius:2px}
+#loader i b{display:block;height:100%;width:0;background:var(--gold);transition:width .3s}
+.panel{position:fixed;left:16px;top:16px;bottom:16px;width:320px;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;overflow:auto;z-index:5;scrollbar-width:thin}
+.brand{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+h1{font:600 32px/1 "Cormorant Garamond",serif;margin:0;letter-spacing:.02em}
+.sub{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:6px 0 0}
+.lang{background:none;border:1px solid var(--line);color:var(--ink);border-radius:99px;font:600 11px Assistant;padding:5px 10px;cursor:pointer}
+.lang:hover{background:rgba(244,239,228,.1)}
+.intro{font-size:13px;line-height:1.45;color:var(--mute);margin:12px 0 0}
+h2{font:700 11px Assistant;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:18px 0 8px}
+.guests{display:flex;align-items:baseline;gap:8px}
+.guests b{font:600 44px/1 "Cormorant Garamond",serif;font-variant-numeric:tabular-nums}
+.guests span{color:var(--mute);font-size:13.5px}
+input[type=range]{width:100%;accent-color:var(--gold);margin:8px 0 0}
+.ticks{display:flex;justify-content:space-between;font-size:10.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+.seg button,.views button,.tog button{background:rgba(244,239,228,.06);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 6px;font:600 13px Assistant;cursor:pointer;transition:.15s}
+.seg button small{display:block;font-size:10.5px;color:var(--mute);margin-top:1px;font-weight:500}
+.seg button:hover,.views button:hover,.tog button:hover{background:rgba(244,239,228,.13)}
+.seg button.on,.views button.on{background:var(--gold);border-color:var(--gold);color:var(--gold-ink)}
+.seg button.on small{color:#5a4514}
+.seg button.over:not(.on) small{color:#e0a080}
+.tog{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tog button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;font-size:12px}
+.tog button::before{content:"";width:26px;height:14px;border-radius:9px;background:rgba(244,239,228,.2);box-shadow:inset -12px 0 0 2px rgba(30,28,22,.9);transition:.2s}
+.tog button.on::before{background:var(--gold);box-shadow:inset 12px 0 0 2px rgba(30,28,22,.9)}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:16px}
+.stats div{border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+.stats b{display:block;font:600 25px/1.05 "Cormorant Garamond",serif;font-variant-numeric:tabular-nums}
+.stats span{font-size:11px;color:var(--mute);letter-spacing:.03em;line-height:1.2;display:block}
+.note{font-size:11.5px;line-height:1.5;color:var(--mute);margin:12px 0 0;border-left:2px solid var(--gold);padding-left:9px}
+.cta{display:block;margin-top:14px;text-align:center;background:var(--ink);color:#1b1a14;text-decoration:none;font:700 13.5px Assistant;padding:12px;border-radius:10px}
+.cta:hover{background:#fff}
+.credit{font-size:10.5px;color:#8f8a7b;margin:9px 0 0;text-align:center}
+.views{position:fixed;left:352px;right:16px;bottom:16px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;z-index:5}
+.views button{background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:9px 14px;border-radius:99px;white-space:nowrap}
+.hint{position:fixed;right:16px;top:16px;font-size:12px;color:var(--ink);background:var(--panel);border:1px solid var(--line);padding:7px 12px;border-radius:99px;z-index:5;backdrop-filter:blur(12px)}
+#tags{position:fixed;inset:0;pointer-events:none;z-index:4}
+.tag{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;background:rgba(30,28,22,.78);border:1px solid rgba(217,180,106,.7);color:var(--ink);font:700 11.5px Assistant;letter-spacing:.06em;padding:5px 10px 5px 8px;border-radius:99px;white-space:nowrap;backdrop-filter:blur(8px);transition:opacity .25s}
+.tag::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--gold);margin-right:6px;vertical-align:1px}
+.tag::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:14px;background:rgba(217,180,106,.7)}
+.tag.far{opacity:.0;pointer-events:none}
+#card{position:fixed;right:16px;top:60px;width:330px;max-height:calc(100% - 140px);overflow:auto;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:16px 18px;z-index:6;display:none}
+#card.show{display:block}
+#card h3{font:600 26px/1.05 "Cormorant Garamond",serif;margin:0 26px 4px 0}
+#card .k{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin:0 0 8px}
+#card p{font-size:13.5px;line-height:1.5;margin:8px 0;color:#e8e2d4}
+#card ul{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.55;color:#e8e2d4}
+#card .x{position:absolute;right:10px;top:10px;background:none;border:0;color:var(--mute);font-size:20px;cursor:pointer;line-height:1}
+#vid{position:fixed;inset:0;z-index:30;background:rgba(10,9,7,.86);display:none;place-items:center;padding:4vw}#vid.show{display:grid}#vid>div{position:relative;width:min(1200px,92vw)}#vid video{width:100%;border-radius:10px;display:block;background:#000}#vid .x{position:absolute;right:-6px;top:-38px;background:none;border:0;color:#f4efe4;font-size:30px;cursor:pointer}
+#card .src{font-size:11px;color:#8f8a7b;margin-top:10px}
+@media (max-width:760px){
+ .panel{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:43vh;padding:13px 14px}
+ .intro{display:none}
+ .views{left:8px;right:8px;top:8px;bottom:auto;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+ .views button{padding:8px 12px}
+ .hint{display:none} h1{font-size:26px} .guests b{font-size:34px}
+ #card{left:8px;right:8px;width:auto;top:58px;max-height:40vh}
+ .tag{font-size:10.5px;padding:4px 8px 4px 7px}
+}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}</script>
+</head>
+<body>
+<div id="loader"><div>Mas Jofre<small data-i="loading">Preparando la finca…</small><i><b id="bar"></b></i></div></div>
+<canvas id="c"></canvas>
+<div id="tags"></div>
+
+<aside class="panel">
+  <div class="brand">
+    <div><h1>Mas Jofre</h1><p class="sub" data-i="sub">Pals · Empordà · Tour 3D</p></div>
+    <button class="lang" id="lang" aria-label="English / Español">EN</button>
+  </div>
+  <p class="intro" data-i="intro">Masía histórica documentada desde 1570. Diseña aquí el montaje de tu boda: invitados, espacio, mesas y luz.</p>
+
+  <h2 data-i="hGuests">Invitados</h2>
+  <div class="guests"><b id="gN">120</b><span data-i="guestsUnit">personas</span></div>
+  <input type="range" id="guests" min="40" max="200" step="10" value="120" aria-label="Invitados">
+  <div class="ticks"><span>40</span><span>80</span><span>120</span><span>160</span><span>200</span></div>
+
+  <h2 data-i="hSpace">Espacio</h2>
+  <div class="seg" id="space">
+    <button data-v="jardin"><span data-i="jardin">Jardín</span><small></small></button>
+    <button data-v="patio"><span data-i="patio">Patio</span><small></small></button>
+    <button data-v="sala"><span data-i="sala">Sala</span><small></small></button>
+  </div>
+
+  <h2 data-i="hStyle">Mesas</h2>
+  <div class="seg" id="style">
+    <button data-v="imperial" data-i="imperial">Imperiales</button>
+    <button data-v="round" data-i="round">Redondas</button>
+  </div>
+
+  <h2 data-i="hExtras">Extras</h2>
+  <div class="tog" id="extras">
+    <button data-v="ceremony" data-i="ceremony">Ceremonia</button>
+    <button data-v="dance" data-i="dance">Pista de baile</button>
+    <button data-v="festoons" data-i="festoons">Guirnaldas</button>
+  </div>
+
+  <h2 data-i="hTime">Luz</h2>
+  <div class="seg" id="time">
+    <button data-v="day" data-i="day">Día</button>
+    <button data-v="sunset" data-i="sunset">Atardecer</button>
+    <button data-v="night" data-i="night">Noche</button>
+  </div>
+
+  <div class="stats">
+    <div><b id="sTables">—</b><span id="sTablesL">mesas</span></div>
+    <div><b id="sChairs">—</b><span data-i="chairs">sillas banquete</span></div>
+    <div><b id="sCer">—</b><span data-i="cerSeats">sillas ceremonia</span></div>
+  </div>
+  <p class="note" data-i="note">Demo orientativa creada por Yahya a partir de la información pública de Mas Jofre. Distribución, medidas y capacidad del banquete estimadas.</p>
+  <a class="cta" id="cta" href="#" data-i="cta">Hablemos de esta demo</a>
+  <p class="credit" data-i="credit">Modelo 3D no oficial · texturas CC0 (Poly Haven)</p>
+</aside>
+
+<nav class="views" id="views">
+  <button data-v="aerial" data-i="vAerial">Vista aérea</button>
+  <button data-v="banquet" data-i="vBanquet">Banquete</button>
+  <button data-v="ceremony" data-i="vCeremony">Ceremonia</button>
+  <button data-v="patio" data-i="vPatio">Patio</button>
+  <button data-v="pool" data-i="vPool">Piscina y torre</button>
+  <button data-v="porch" data-i="vPorch">Porche Pahissa</button>
+  <button data-v="plan" data-i="vPlan">Plano</button>
+  <button data-v="tour" data-i="vTour">▶ Tour</button>
+  <button data-v="video" data-i="vVideo">Vídeo</button>
+</nav>
+<div id="vid"><div><button class="x" id="vidX" aria-label="Cerrar">×</button><video id="vidEl" controls playsinline preload="none" poster="video/poster.jpg"></video></div></div>
+<div class="hint" data-i="hint">Arrastra para girar · rueda para acercar · toca las etiquetas</div>
+<div id="card" role="dialog"><button class="x" id="cardX" aria-label="Cerrar">×</button><div id="cardBody"></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { computeLayout, capacity, ZONES, CEREMONY, GUESTS } from './layout.js';
+
+const CONTACT = 'yahyaelhmidi11@gmail.com';   // Yahya (author of the demo) - the CTA never writes to the venue
+
+/* ---------- basics ---------- */
+let seed = 7; const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const R = (a, b) => a + rnd() * (b - a);
+const $ = (s) => document.querySelector(s);
+const canvas = $('#c'), bar = $('#bar');
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); }
+catch (e) { $('#loader small').textContent = 'Este navegador no tiene WebGL activo · WebGL is not available in this browser'; throw e; }
+const mobile = matchMedia('(max-width: 760px)').matches;
+renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.75 : 2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0xc9dcec, 0.00018);
+const camera = new THREE.PerspectiveCamera(46, 1, 0.3, 16000);
+camera.position.set(-160, 120, 260);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = .07; controls.maxPolarAngle = Math.PI * .49;
+controls.minDistance = 2; controls.maxDistance = 420; controls.target.set(4, 0, -4);
+
+const rt = new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, samples: 4 });
+const composer = new EffectComposer(renderer, rt);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(2, 2), .4, .6, 1.0); composer.addPass(bloom);
+composer.addPass(new OutputPass());
+const vis = { x: 0, y: 0, w: 1, h: 1 };   // part of the canvas not covered by the panel
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); composer.setSize(w, h); camera.aspect = w / h; camera.fov = camera.aspect < .8 ? 62 : 46;
+  const pn = document.querySelector('.panel'), r = pn ? pn.getBoundingClientRect() : { width: 0, height: 0 }, narrow = w <= 760;
+  const px = narrow ? 0 : Math.min(r.width + 16, w * .4), py = narrow ? Math.min(r.height + 8, h * .5) : 0;
+  vis.w = (w - px) / w; vis.h = (h - py - (narrow ? 50 : 0)) / h;
+  camera.setViewOffset(w, h, -px / 2, py / 2 - (narrow ? 25 : 0), w, h); camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+/* ---------- assets (built in Blender: blender/build.py) ---------- */
+const manager = new THREE.LoadingManager(); manager.onProgress = (_, a, b) => { bar.style.width = Math.round(a / b * 100) + '%'; };
+const AS = 'assets/', tl = new THREE.TextureLoader(manager), gltf = new GLTFLoader(manager), rgbe = new RGBELoader();
+const ANISO = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+const texCache = {};
+function ptex(id, kind, rx = 1, ry = 1, flip = false) { const k = [id, kind, rx, ry, flip].join(); if (texCache[k]) return texCache[k];
+  const t = tl.load(`${AS}tex/${id}_${kind}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); t.anisotropy = ANISO; t.flipY = flip; if (kind === 'diff') t.colorSpace = THREE.SRGBColorSpace; return texCache[k] = t; }
+function pbr(id, rx, ry, o = {}) { const arm = ptex(id, 'arm', rx, ry); return new THREE.MeshStandardMaterial({ map: ptex(id, 'diff', rx, ry), normalMap: ptex(id, 'nor_gl', rx, ry), roughnessMap: arm, metalnessMap: arm, aoMap: arm, metalness: 1, roughness: 1, ...o }); }
+const [venue, propsFile, TREES, vegFile] = await Promise.all([gltf.loadAsync(AS + 'venue.glb'), gltf.loadAsync(AS + 'props.glb'), fetch(AS + 'trees.json').then(r => r.json()), gltf.loadAsync(AS + 'veg.glb')]);
+const prop = (n) => propsFile.scene.getObjectByName(n).geometry;
+
+/* ---------- materials ---------- */
+const S = (o) => new THREE.MeshStandardMaterial(o);
+const linenN = ptex('rough_linen', 'nor_gl', 2, 2);
+const woodMat = pbr('weathered_brown_planks', 1, 1, { color: 0xc0a082 });
+const whiteMat = S({ color: 0xf3f0e8, roughness: .45 }), ivoryMat = S({ color: 0xf0e8d6, roughness: .9, normalMap: linenN });
+const leafMat = S({ color: 0x3d5c31, roughness: .8 }), flowerMat = S({ color: 0xf6f0e6, roughness: .7 }), cypressMat = S({ color: 0x2b4430, roughness: .95 });
+const clothMat = S({ color: 0xf1e9d8, roughness: .92, normalMap: linenN, normalScale: new THREE.Vector2(.6, .6) });
+const plateMat = S({ color: 0xffffff, roughness: .18 });
+const glassMat = S({ color: 0xffffff, roughness: .03, transparent: true, opacity: .32, envMapIntensity: 2.5, depthWrite: false });
+const danceMat = pbr('weathered_brown_planks', 1, 1, { color: 0xf6ead6 });
+const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffffff }), flameMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const wireMat = new THREE.LineBasicMaterial({ color: 0x1a1a1a });
+// GLB material name -> PBR set (the GLB carries geometry, UVs and names only)
+const MAP = { Stone: ['old_stone_wall'], RoofTile: ['clay_roof_tiles_02', 0xe2c9b8], Wood: ['weathered_brown_planks', 0xc0a082], Beam: ['weathered_brown_planks', 0x9a7b5c],
+  DoorWood: ['weathered_brown_planks', 0x86654a], Paving: ['terracotta_floor_tiles'], Plaster: ['white_plaster_02'], Limestone: ['white_plaster_02', 0xd8c8a6], PoolDeck: ['white_plaster_02', 0xe9dfc9] };
+const matCache = {};
+const glowMats = new Set(), lampMats = new Set(), masUp = [], roofs = [];
+
+/* ---------- helpers ---------- */
+const unit = new THREE.BoxGeometry(1, 1, 1).translate(0, 0, 0);
+const Mx = (x, y, z, ry = 0, sx = 1, sy = 1, sz = 1) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new THREE.Vector3(sx, sy, sz));
+const MI = (a) => Mx(...a);
+function inst(geo, mat, ms, parent, cast = true) { if (!ms.length) return null; const m = new THREE.InstancedMesh(geo, mat, ms.length); ms.forEach((x, i) => m.setMatrixAt(i, x)); m.castShadow = cast; m.receiveShadow = true; m.computeBoundingSphere(); parent.add(m); return m; }
+function ground(mat, w, d, x, z, y = .02) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d).rotateX(-Math.PI / 2), mat); m.position.set(x, y, z); m.receiveShadow = true; mat.polygonOffset = true; mat.polygonOffsetFactor = -2; mat.polygonOffsetUnits = -2; scene.add(m); return m; }
+function canvasTex(w, h, draw) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = ANISO; return t; }
+
+/* ---------- terrain: estate lawn, gravel, Empordà fields, Montgrí, sea ---------- */
+{
+  const g = new THREE.PlaneGeometry(96, 82, 48, 41).rotateX(-Math.PI / 2), p = g.attributes.position, col = [];
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); const n = .9 + .1 * Math.sin(x * .09 + 1) * Math.cos(z * .07) + .05 * Math.sin(x * .27 + z * .21), d = .5 + .5 * Math.sin(x * .05 - z * .06 + 2); col.push(n * (1 + .12 * d), n, n * (.94 - .08 * d)); }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const lawn = new THREE.Mesh(g, pbr('leafy_grass', 48, 41, { color: 0xaed27a, vertexColors: true })); lawn.position.set(4, 0, 11); lawn.receiveShadow = true; scene.add(lawn);
+  const base = new THREE.Mesh(new THREE.PlaneGeometry(30000, 30000).rotateX(-Math.PI / 2), S({ color: 0x8a7448, roughness: 1 })); base.position.y = -.35; scene.add(base);
+  // fields: one stripe texture for crop rows, tinted per instance
+  const rows = canvasTex(256, 256, (c, w, h) => { c.fillStyle = '#d0d0d0'; c.fillRect(0, 0, w, h); for (let y = 0; y < h; y += 8) { c.fillStyle = `rgba(255,255,255,${.35 + Math.random() * .2})`; c.fillRect(0, y, w, 4); } for (let i = 0; i < 900; i++) { c.fillStyle = `rgba(0,0,0,${Math.random() * .08})`; c.fillRect(Math.random() * w, Math.random() * h, 3, 3); } });
+  rows.repeat.set(10, 10);
+  const COLS = [0xd3a548, 0xc29341, 0x8a9c48, 0x86603e, 0xc8a465], W8 = [4, 3, 2, 1.4, 2], ms = [], cs = [];
+  for (let x = -1400; x <= 1400; x += 96) for (let z = -1400; z <= 1400; z += 64) { if (x > -40 && x < 48 && z > -26 && z < 48) continue; if (x > -34 && x < -22 && z < -26) continue;
+    let r = rnd() * 12.4, k = 0; while (r > W8[k]) r -= W8[k++]; ms.push(Mx(x + R(-1.5, 1.5), -.12, z + R(-1.5, 1.5), R(-.015, .015) + (rnd() < .5 ? 0 : Math.PI / 2) * 0, 92 + R(-3, 0), 1, 60 + R(-3, 0))); cs.push(new THREE.Color(COLS[k]).multiplyScalar(R(.92, 1.06))); }
+  const pm = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), S({ map: rows, roughness: .95 }), ms.length);
+  ms.forEach((m, i) => { pm.setMatrixAt(i, m); pm.setColorAt(i, cs[i]); }); pm.receiveShadow = true; scene.add(pm);
+  // Montgrí massif (NNE) and its castle, Gavarres (SW), sea + Medes (E): simplified silhouettes
+  const hill = (mat, x, z, sx, h, sz, ry = 0) => { const m = new THREE.Mesh(new THREE.SphereGeometry(1, 40, 14, 0, Math.PI * 2, 0, Math.PI / 2), mat); m.scale.set(sx, h, sz); m.position.set(x, -30, z); m.rotation.y = ry; scene.add(m); return m; };
+  const mont = S({ color: 0x75806a, roughness: 1 }), az = THREE.MathUtils.degToRad(18), mx = Math.sin(az) * 6500, mz = -Math.cos(az) * 6500;
+  // displaced ridge (same idea as the Cycles terrain): broken limestone crest, spurs and gullies, scrub/rock colours + haze
+  const ridge = (cx, cz, L, Wd, H, yaw, sd, castleU = null, nu = 220, nv = 56) => {
+    const g = new THREE.PlaneGeometry(L, Wd, nu, nv).rotateX(-Math.PI / 2), p = g.attributes.position, col = [], ph = [...Array(12)].map((_, i) => Math.sin(sd * 12.9898 + i * 78.233) * 43758.5453 % 6.28);
+    const n1 = (x) => .5 * Math.sin(x * 3.1 + ph[0]) + .3 * Math.sin(x * 7.3 + ph[1]) + .2 * Math.sin(x * 15.9 + ph[2]) + .1 * Math.sin(x * 33 + ph[3]);
+    const n2 = (x, y) => Math.sin(x * 21 + ph[4] + Math.sin(y * 9 + ph[5])) * Math.sin(y * 13 + ph[6] + x * 4);
+    const scrub = new THREE.Color(0x56664a), rock = new THREE.Color(0x8a877a), haze = new THREE.Color(0x8fa1b6), c = new THREE.Color();
+    for (let i = 0; i < p.count; i++) { const u = p.getX(i) / (L / 2), v = p.getZ(i) / (Wd / 2);
+      let crest = Math.pow(Math.max(0, 1 - u * u), .45) * (.72 + .26 * n1(u)); if (castleU !== null) crest += .14 * Math.exp(-(((u - castleU) / .05) ** 2));
+      const w = .5 + .12 * Math.sin(u * 4.1), prof = Math.exp(-Math.pow(Math.abs(v + .1 * Math.sin(u * 5)) / w, 1.25)), gl = n2(u, v);
+      const edge = Math.abs(u) > .97 || Math.abs(v) > .97 ? -60 : 0; p.setY(i, H * crest * prof * (1 + .18 * gl) - 25 + edge);
+      c.copy(scrub).lerp(rock, THREE.MathUtils.clamp(.35 + .45 * gl * prof + .3 * (prof > .7 ? 1 : 0) * crest, 0, 1))
+        .lerp(haze, .26); col.push(c.r, c.g, c.b); }
+    g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
+    const m = new THREE.Mesh(g, S({ vertexColors: true, roughness: 1 })); m.position.set(cx, 0, cz); m.rotation.y = yaw; scene.add(m); return m; };
+  ridge(mx, mz, 7600, 2600, 320, THREE.MathUtils.degToRad(-5), 1, -.13); ridge(mx + 3600, mz + 900, 3200, 1500, 140, THREE.MathUtils.degToRad(-25), 2);
+  const castle = new THREE.Mesh(unit, S({ color: 0x9c9584, roughness: 1 })); castle.scale.set(70, 26, 55); castle.position.set(mx - 495, 300, mz + 40 - 43); scene.add(castle);
+  window.__montgri = new THREE.Vector3(mx - 500, 380, mz + 40);
+  const hm = S({ color: 0x8696a6, roughness: 1 });
+  for (let i = 0; i < 6; i++) { const a = THREE.MathUtils.degToRad(185 + i * 19) + R(-.08, .08), d = R(6200, 7600); ridge(Math.sin(a) * d, -Math.cos(a) * d, R(3800, 5200), R(1800, 2600), R(180, 300), Math.PI / 2 - a, 10 + i); }
+  const sea = new THREE.Mesh(new THREE.PlaneGeometry(5000, 30000).rotateX(-Math.PI / 2), S({ color: 0x5d7f99, roughness: .12, metalness: .1 })); sea.position.set(6800, -.3, 0); scene.add(sea);
+  const im = S({ color: 0x7d8478, roughness: 1 }); hill(im, 5000, -1900, 220, 70, 140); hill(im, 5300, -1750, 90, 30, 70);
+  const gravel = (w, d, x, z) => ground(pbr('gravelly_sand', w / 2.5, d / 2.5), w, d, x, z);
+  gravel(23.4, 15.75, 2.3, -6.125);    // patio (jardín interior)
+  gravel(5, 160, -28, -110); gravel(22, 12, -31, -34); gravel(4, 1.6, 8, 52);
+}
+
+/* ---------- estate (El Mas, Torre, La Pahissa, pool, walls) ---------- */
+const potShrubs = [];
+venue.scene.traverse(o => { if (!o.isMesh) return; o.castShadow = o.receiveShadow = true;
+  if (/^Shrub_i/.test(o.name) || /^Shrub_i/.test(o.parent?.name || '')) { o.visible = false; const p = o.getWorldPosition(new THREE.Vector3()); if (!potShrubs.some(q => q.distanceTo(p) < .2)) potShrubs.push(p); return; }
+  if (o.name.includes('MASUP')) masUp.push(o); if (o.name.startsWith('ROOF_')) roofs.push(o);
+  o.material = [].concat(o.material).map(m => {
+    if (MAP[m.name]) { const [id, tint] = MAP[m.name]; return matCache[m.name] ||= pbr(id, 1, 1, tint ? { color: tint } : {}); }
+    if (m.name === 'Glass') { m.emissive.set(0xffb866); m.roughness = .08; m.envMapIntensity = 1.5; glowMats.add(m); }
+    if (m.name === 'Lamp') lampMats.add(m);
+    if (m.name === 'Water') return matCache.Water ||= S({ color: 0x1f8796, roughness: .04, metalness: .15, envMapIntensity: 1.6 });
+    if (m.name === 'Cloth') return clothMat;
+    if (m.name === 'planter_pot_clay') return matCache.pot ||= S({ color: 0xa65f3e, roughness: .9 });
+    if (/leaves|twigs/.test(m.name)) { m.transparent = false; m.alphaTest = .45; m.side = THREE.DoubleSide; }
+    return m; });
+  if (o.material.length === 1) o.material = o.material[0]; });
+scene.add(venue.scene);
+
+/* ---------- vegetation (realism pass v2): 3D instanced species from blender/veg.py near the estate (light versions,
+   veg.glb), billboards rendered from the same full-quality models for the distant field trees ---------- */
+{
+  const vegMat = S({ vertexColors: true, roughness: .85, side: THREE.DoubleSide }), oliveMat = S({ vertexColors: true, roughness: .85, side: THREE.DoubleSide, color: 0x9ea392 });
+  const VG = {}; vegFile.scene.traverse(o => { if (o.isMesh) { o.geometry.computeVertexNormals(); VG[o.name.replace('Veg_', '')] = o.geometry; } });
+  const byKind = {};
+  for (const [k, x, y, rz, sx, sy, sz] of TREES.veg) (byKind[k.replace(/\d$/, '')] ||= []).push(Mx(x, 0, -y, rz, sx, sz, sy));
+  const cH = TREES.species.cypress.H;
+  (byKind.cypress ||= []).push(...TREES.cypress.map((c, i) => { const k = c.h / cH; return Mx(c.x, 0, c.z, i * 1.7, k * c.w, k, k * c.w); }));
+  (byKind.shrub1 ||= []).push(...potShrubs.map((p, i) => Mx(p.x, .48, p.z, i * 2.1, .62, .7, .62)));
+  for (const [k, ms] of Object.entries(byKind)) { const m = inst(VG[k], k === 'olive' ? oliveMat : vegMat, ms, scene); if (m && ['lavender', 'hedge'].includes(k)) m.castShadow = false; }
+  for (const [name, sp] of Object.entries(TREES.species)) {
+    const list = TREES.trees.filter(t => t.s === name); if (!list.length || !sp.q) continue;
+    const side = tl.load(`${AS}trees/${name}_side.png`), top = tl.load(`${AS}trees/${name}_top.png`); side.colorSpace = top.colorSpace = THREE.SRGBColorSpace; side.anisotropy = top.anisotropy = ANISO;
+    const q = sp.q, pos = [], uv = [], idx = [];
+    for (const [ang, flip] of [[0, 1], [0, -1], [Math.PI / 2, 1], [Math.PI / 2, -1]]) { const c = Math.cos(ang), s = Math.sin(ang), b = pos.length / 3;
+      for (const [u, v] of [[0, 0], [1, 0], [1, 1], [0, 1]]) { const lx = (u - .5) * q * flip; pos.push(lx * c, v * q, lx * s); uv.push(u, v); }
+      idx.push(b, b + 1, b + 2, b, b + 2, b + 3); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(pos.map((_, i) => i % 3 === 1 ? 1 : 0), 3)); g.setIndex(idx);
+    const tg = new THREE.PlaneGeometry(sp.tq, sp.tq).rotateX(-Math.PI / 2).translate(0, .62, 0);
+    const o = { alphaTest: .4, roughness: 1, color: new THREE.Color(1.6, 1.65, 1.45) };
+    const ms = list.map(t => Mx(t.x, 0, t.z, t.r, t.h, t.h, t.h));
+    inst(g, S({ map: side, ...o }), ms, scene); const tm = inst(tg, S({ map: top, side: THREE.DoubleSide, ...o }), ms, scene, false); tm.receiveShadow = false;
+  }
+}
+
+/* ---------- lights & sky ---------- */
+const sun = new THREE.DirectionalLight(0xffffff, 3); sun.castShadow = true; sun.shadow.mapSize.set(mobile ? 2048 : 4096, mobile ? 2048 : 4096);
+Object.assign(sun.shadow.camera, { left: -70, right: 70, top: 70, bottom: -70, near: 10, far: 500 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .05; sun.target.position.set(4, 0, -2); scene.add(sun, sun.target);
+const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x6b7a45, 1); scene.add(hemi);
+const zoneLights = [...Array(5)].map(() => { const l = new THREE.PointLight(0xffb469, 0, 34, 1.7); scene.add(l); return l; });
+const salaLights = [-6, 0, 6].map(x => { const l = new THREE.PointLight(0xffb469, 0, 16, 1.6); l.position.set(x, 2.4, -20); scene.add(l); return l; });
+const fixedLights = [[0, 2.8, -12.6], [24.3, 2.7, -6], [-12.9, 2.6, -10.6]].map(p => { const l = new THREE.PointLight(0xffb469, 0, 18, 1.7); l.position.set(...p); scene.add(l); return l; });
+const SKIES = { day: ['kloofendal_48d_partly_cloudy_puresky', .5951], sunset: ['belfast_sunset_puresky', .6049], night: ['qwantani_night_puresky', .783] }, skyCache = {};
+function loadSky(k) { if (!skyCache[k]) { const [f] = SKIES[k]; skyCache[k] = Promise.all([rgbe.loadAsync(`${AS}hdri/${f}_2k.hdr`), rgbe.loadAsync(`${AS}hdri/${f}_env.hdr`)]).then(([bg, env]) => { bg.mapping = env.mapping = THREE.EquirectangularReflectionMapping; return { bg, env }; }); } return skyCache[k]; }
+const TIMES = {
+  day:    { el: 48, az: -38, exp: .8, sunC: 0xfff1da, sunI: 4.2, hemiI: .5, sky: 0xbfd8ff, gnd: 0x6b7a45, env: .7, bgI: .8, fog: 0xc6d6e4, fogD: .00016, bulb: [1, .92, .7], pl: 0, sala: 6, bloom: 0, glow: 0 },
+  sunset: { el: 8, az: -62, exp: .62, sunC: 0xffa25c, sunI: 3, hemiI: .22, sky: 0xffc9a8, gnd: 0x4b4a36, env: .6, bgI: .9, fog: 0xd9bfb4, fogD: .0002, bulb: [5, 3.3, 1.5], pl: 22, sala: 18, bloom: .1, glow: 1.2 },
+  night:  { el: 55, az: 30, exp: .88, sunC: 0x93a8d6, sunI: .35, hemiI: .1, sky: 0x2a3558, gnd: 0x10140c, env: .035, bgI: .05, fog: 0x070b18, fogD: .0003, bulb: [4.2, 2.9, 1.3], pl: 32, sala: 22, bloom: .38, glow: 1.1 }
+};
+let timeReq = 0;
+async function setTime(k) {
+  const t = TIMES[k], req = ++timeReq, { bg, env } = await loadSky(k); if (req !== timeReq) return;
+  const az = THREE.MathUtils.degToRad(t.az), dir = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - t.el), az);
+  const rot = (SKIES[k][1] - .5) * Math.PI * 2 - (Math.PI / 2 - az);        // turn the HDRI so its sun sits where the shadow-casting light is
+  scene.background = bg; scene.environment = env; scene.backgroundRotation.y = scene.environmentRotation.y = rot; scene.backgroundIntensity = t.bgI; scene.environmentIntensity = t.env;
+  sun.position.copy(dir).multiplyScalar(200).add(sun.target.position); sun.color.set(t.sunC); sun.intensity = t.sunI;
+  hemi.color.set(t.sky); hemi.groundColor.set(t.gnd); hemi.intensity = t.hemiI; scene.fog.color.set(t.fog); scene.fog.density = t.fogD;
+  renderer.toneMappingExposure = t.exp; bloom.enabled = t.bloom > 0; bloom.strength = t.bloom;
+  bulbMat.color.setRGB(...t.bulb); flameMat.color.setRGB(t.bulb[0] * .8, t.bulb[1] * .7, t.bulb[2] * .5);
+  glowMats.forEach(m => m.emissiveIntensity = t.glow); lampMats.forEach(m => m.emissiveIntensity = 1 + t.glow * 3);
+  applyLights();
+}
+function applyLights() { const t = TIMES[state.time], fest = state.festoons;
+  zoneLights.forEach(l => l.intensity = state.space === 'sala' ? 0 : t.pl * (fest ? 1 : .35)); fixedLights.forEach(l => l.intensity = t.pl * .6); salaLights.forEach(l => l.intensity = state.space === 'sala' ? t.sala : t.sala * .3); }
+
+/* ---------- event layout (site/layout.js, shared with the Cycles renders) ---------- */
+const state = { guests: 120, space: 'jardin', style: 'imperial', ceremony: true, dance: true, festoons: true, time: 'sunset', view: 'aerial', lang: 'es' };
+const padMat = S({ color: 0xece6d8, roughness: .95, normalMap: linenN });
+const G = { chair: prop('Chair'), pad: prop('ChairPad'), round: prop('TableRound'), long: prop('TableLong'), plate: prop('Plate'), glass: prop('Glass'), vase: prop('Vase'), cLeaf: prop('Center_leaves'), cFlower: prop('Center_flowers'), garland: prop('Garland'),
+  arch: prop('ArchWood'), archL: prop('Arch_leaves'), archF: prop('Arch_flowers') };
+const candleGeo = new THREE.CylinderGeometry(.022, .022, .16, 6), icoGeo = new THREE.IcosahedronGeometry(1, 1), bulbGeo = new THREE.SphereGeometry(.042, 8, 6);
+const layout = new THREE.Group(); scene.add(layout);
+let L = null;
+function buildLayout() {
+  layout.traverse(o => { if (o.isInstancedMesh) o.dispose(); if (o.isLineSegments || o.userData.own) o.geometry.dispose(); }); layout.clear();
+  L = computeLayout(state);
+  const m = (a) => a.map(MI);
+  inst(G.chair, whiteMat, m(L.chairs), layout); inst(G.chair, whiteMat, m(L.cerChairs), layout); inst(G.pad, padMat, m(L.chairs.concat(L.cerChairs)), layout, false);
+  inst(G.round, clothMat, m(L.round), layout); inst(G.long, clothMat, m(L.long), layout);
+  inst(G.vase, plateMat, m(L.centers), layout); inst(G.cLeaf, leafMat, m(L.centers), layout); inst(G.cFlower, flowerMat, m(L.centers), layout, false);
+  inst(G.garland, leafMat, m(L.garlands), layout); inst(G.plate, plateMat, m(L.plates), layout, false); inst(G.glass, glassMat, m(L.glasses), layout, false);
+  inst(candleGeo, flameMat, m(L.candles), layout, false); inst(icoGeo, flowerMat, m(L.flowers.concat(L.petals)), layout, false);
+  inst(G.arch, woodMat, m(L.arch), layout); inst(G.archL, leafMat, m(L.arch), layout); inst(G.archF, flowerMat, m(L.arch), layout, false);
+  inst(bulbGeo, bulbMat, m(L.bulbs), layout, false); inst(unit, woodMat, m(L.poles), layout);
+  if (L.wire.length) layout.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(L.wire, 3)), wireMat));
+  if (L.dance) { const d = new THREE.Mesh(new THREE.BoxGeometry(L.dance.s, .08, L.dance.s), danceMat); d.userData.own = true; d.position.set(L.dance.x, .04, L.dance.z); d.receiveShadow = true; layout.add(d); }
+  if (L.aisle) { const a = new THREE.Mesh(new THREE.PlaneGeometry(L.aisle.w, L.aisle.d).rotateX(-Math.PI / 2), ivoryMat); a.userData.own = true; a.position.set(L.aisle.x, .03, L.aisle.z); a.receiveShadow = true; layout.add(a); }
+  const Z = ZONES[state.space], A = L.area, lw = Math.max(4, A.w * .3), ld = Math.max(3, A.d * .3), ly = state.space === 'jardin' ? 4.2 : 3;
+  [[0, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b], i) => zoneLights[i].position.set(A.x + a * lw, ly, Z.z + b * ld));
+  applyLights(); updateDoll(); updateUI();
+}
+function updateDoll() { const open = state.space === 'sala' && ['banquet', 'plan'].includes(state.view); masUp.forEach(o => o.visible = !open); }
+
+/* ---------- labels (hotspots) with facts from masjofre.com ---------- */
+const TAGS = [
+  { id: 'mas', p: [2, 12.5, -20] }, { id: 'torre', p: [-12.9, 19.2, -14.8] }, { id: 'pahissa', p: [18, 8.2, -6] },
+  { id: 'pool', p: [-28, 2.4, -14] }, { id: 'patioT', p: [3, 4.2, -6] }, { id: 'garden', p: [2, 3.2, 24] }, { id: 'montgri', p: null },
+];
+const tagBox = $('#tags');
+TAGS.forEach(t => { t.el = document.createElement('div'); t.el.className = 'tag'; t.el.onclick = () => openCard(t.id); tagBox.append(t.el); if (!t.p) t.v = window.__montgri; else t.v = new THREE.Vector3(...t.p); });
+const pv = new THREE.Vector3();
+function placeTags() { const w = innerWidth, h = innerHeight, d = camera.position.distanceTo(controls.target), show = !tour.on && state.view !== 'plan';
+  for (const t of TAGS) { pv.copy(t.v).project(camera); const vis = show && pv.z < 1 && Math.abs(pv.x) < 1.05 && Math.abs(pv.y) < 1.05 && (t.id === 'montgri' ? true : d > 30 || camera.position.distanceTo(t.v) < 60);
+    t.el.classList.toggle('far', !vis); if (vis) { t.el.style.left = ((pv.x + 1) / 2 * w).toFixed(1) + 'px'; t.el.style.top = ((1 - pv.y) / 2 * h - 14).toFixed(1) + 'px'; } } }
+function openCard(id) { const c = I[state.lang].cards[id]; $('#cardBody').innerHTML = `<p class="k">${c.k}</p><h3>${c.h}</h3>${c.b}<p class="src">${I[state.lang].src}</p>`; $('#card').classList.add('show'); stopTour(); }
+$('#cardX').onclick = () => $('#card').classList.remove('show');
+const closeVid = () => { $('#vidEl').pause(); $('#vid').classList.remove('show'); }; $('#vidX').onclick = closeVid; $('#vid').onclick = (e) => { if (e.target.id === 'vid') closeVid(); };
+
+/* ---------- camera ---------- */
+let tw = null; const tour = { on: false, t: 0, i: 0 };
+const TOUR = ['aerial', 'banquet', 'patio', 'ceremony', 'pool', 'porch'];
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+function viewPose(v) { const Z = ZONES[state.space], A = L.area, narrow = camera.aspect < .8;
+  switch (v) {
+    case 'banquet':
+      if (state.space === 'sala') return narrow ? [V(1, 26, -3), V(0, 0, -19.5)] : [V(1.5, 20, -2), V(0, 0, -19.5)];
+      if (state.space === 'patio') return narrow ? [V(13, 9.5, 4), V(1.5, .5, -6.5)] : [V(12.8, 6.8, 1.4), V(0, .4, -7)];
+      { const k = narrow ? 1.5 : 1, w = Math.max(A.w, 12); return [V(A.x + w * .5 * k + 3, 3.6 + w * .05 * k, Z.z + A.d * .5 + 5 + w * .2 * k), V(A.x - w * .12, .9, Z.z - 1.5)]; }
+    case 'ceremony': { const rows = Math.ceil(state.guests / 16); return [V(CEREMONY.x - .4, 2.1, CEREMONY.z + 3.5 + rows * .95 + (narrow ? 9 : 5)), V(CEREMONY.x + 1.2, 3.2, CEREMONY.z - 20)]; }
+    case 'patio': return [V(12.6, 2.2, .6), V(-1.5, 3.4, -10)];
+    case 'pool': return [V(-36, 1.8, 1), V(-20, 5.6, -14)];
+    case 'porch': return [V(35.5, 1.8, 7.5), V(22, 2.6, -6)];
+    case 'plan': { const k = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), W = Z.W + 4, D = Z.D + 4, h = Math.max(D / (k * vis.h * .92), W / (k * camera.aspect * vis.w * .92));
+      return [V(Z.x, h, Z.z + .01), V(Z.x, 0, Z.z)]; }
+    default: return narrow ? [V(-80, 95, 150), V(4, 0, -4)] : [V(-62, 52, 98), V(4, 0, -6)];
+  } }
+function go(v, dur = 2) { state.view = v; const plan = v === 'plan'; roofs.forEach(r => { if (!r.name.includes('MASUP')) r.visible = !plan; }); updateDoll();
+  const [p, t] = viewPose(v); tw = { p0: camera.position.clone(), t0: controls.target.clone(), p1: p, t1: t, k: 0, dur };
+  document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === (tour.on ? 'tour' : v))); }
+function stopTour() { if (tour.on) { tour.on = false; controls.autoRotate = false; document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === state.view)); } }
+canvas.addEventListener('pointerdown', () => { stopTour(); tw = null; }); canvas.addEventListener('wheel', () => { stopTour(); tw = null; }, { passive: true });
+
+/* ---------- UI text (ES / EN) ---------- */
+const FACTS_ES = {
+  mas: { k: 'Casa principal · 12 huéspedes', h: 'El Mas', b: '<p>Masía documentada por primera vez en 1570 (Pera Jofre, síndico de Pals), restaurada: «genuinamente pasado, confortablemente presente».</p><ul><li>4 suites + habitación cuádruple en la torre</li><li>Suites Pedró, Samaria, Quermany y Suite superior El Síndic</li><li>Hall inferior, Antigua cocina, Sala grande, Lavadero, Hall superior</li></ul><p>En la demo, la <b>Sala grande</b> es el plan para días de lluvia (elige «Sala»).</p>' },
+  torre: { k: 'Torre de defensa', h: 'Torre de los Corsarios', b: '<p>Torre de defensa cuadrada de piedra, con pequeñas aberturas. Alberga la Suite «Torre de los Corsarios», una habitación cuádruple.</p>' },
+  pahissa: { k: 'Segunda casa · 8 huéspedes', h: 'La Pahissa', b: '<p>Antigua pallissa (pajar y almacén de aperos) con 4 suites con baño: <b>Les Medes, Montgrí, La Gola y Ter</b>.</p><ul><li>Salón con chimenea, sofás y mesa de juegos</li><li>Cocina-comedor abierta al porche, con vistas a los campos del Empordà y al Montgrí</li></ul>' },
+  pool: { k: 'Compartida', h: 'Piscina', b: '<p>Piscina compartida por las dos casas, junto a la torre.</p>' },
+  patioT: { k: 'Jardín interior', h: 'El patio', b: '<p>Uno de los tres espacios para celebrar según la estación: jardines exteriores, patio o sala. Prueba «Patio» en el configurador.</p>' },
+  garden: { k: 'Jardín exterior', h: 'Bodas y eventos', b: '<p>Ceremonias, menú y baile, con zonas de ceremonia, aperitivo, banquete y baile. De fondo, el Montgrí y las islas Medes.</p><p>En la demo: mesas imperiales bajo guirnaldas de luz, como en sus fotos de noche.</p>' },
+  montgri: { k: 'Paisaje', h: 'Massís del Montgrí', b: '<p>El telón de fondo de Mas Jofre, sobre los campos del Empordà. En la demo, silueta simplificada y a escala aproximada.</p>' },
+};
+const FACTS_EN = {
+  mas: { k: 'Main house · 12 guests', h: 'El Mas', b: '<p>Farmhouse first documented in 1570 (Pera Jofre, síndic of Pals), restored: “genuinely past, comfortably present”.</p><ul><li>4 suites + a quadruple room in the tower</li><li>Suites Pedró, Samaria, Quermany and the upper suite El Síndic</li><li>Lower hall, Old kitchen, Great hall (Sala grande), Laundry room, Upper hall</li></ul><p>In this demo the <b>Sala grande</b> is the rain plan (choose “Hall”).</p>' },
+  torre: { k: 'Defence tower', h: 'Torre de los Corsarios', b: '<p>Square stone defence tower with small openings. It holds the “Torre de los Corsarios” suite, a quadruple room.</p>' },
+  pahissa: { k: 'Second house · 8 guests', h: 'La Pahissa', b: '<p>The old hay and tool barn, with 4 en-suite rooms: <b>Les Medes, Montgrí, La Gola and Ter</b>.</p><ul><li>Lounge with fireplace, sofas and a games table</li><li>Kitchen-dining room opening onto the porch, overlooking the Empordà fields and the Montgrí</li></ul>' },
+  pool: { k: 'Shared', h: 'Pool', b: '<p>Pool shared by both houses, next to the tower.</p>' },
+  patioT: { k: 'Inner garden', h: 'The courtyard', b: '<p>One of the three spaces for celebrations depending on the season: outdoor gardens, courtyard or hall. Try “Courtyard” in the configurator.</p>' },
+  garden: { k: 'Outer garden', h: 'Weddings & events', b: '<p>Ceremonies, dinner and dancing, with areas for the ceremony, drinks, banquet and dance. In the background, the Montgrí and the Medes Islands.</p><p>In the demo: long imperial tables under festoon lights, like their night photos.</p>' },
+  montgri: { k: 'Landscape', h: 'Montgrí massif', b: '<p>The backdrop of Mas Jofre, beyond the Empordà fields. Simplified silhouette at approximate scale.</p>' },
+};
+const I = {
+  es: { loading: 'Preparando la finca…', sub: 'Pals · Empordà · Tour 3D', intro: 'Masía histórica documentada desde 1570. Diseña aquí el montaje de tu boda: invitados, espacio, mesas y luz.', hGuests: 'Invitados', guestsUnit: 'personas', hSpace: 'Espacio', jardin: 'Jardín', patio: 'Patio', sala: 'Sala', hStyle: 'Mesas', imperial: 'Imperiales', round: 'Redondas', hExtras: 'Extras', ceremony: 'Ceremonia', dance: 'Pista de baile', festoons: 'Guirnaldas', hTime: 'Luz', day: 'Día', sunset: 'Atardecer', night: 'Noche',
+    tables: 'mesas', tablesImp: 'mesas imperiales', chairs: 'sillas banquete', cerSeats: 'sillas ceremonia', max: 'máx.', note: 'Demo orientativa creada por Yahya a partir de la información pública de Mas Jofre. Distribución, medidas y capacidad del banquete estimadas.', cta: 'Hablemos de esta demo', credit: 'Modelo 3D no oficial · texturas CC0 (Poly Haven)',
+    vAerial: 'Vista aérea', vBanquet: 'Banquete', vCeremony: 'Ceremonia', vPatio: 'Patio', vPool: 'Piscina y torre', vPorch: 'Porche Pahissa', vPlan: 'Plano', vTour: '▶ Tour', vVideo: '▶ Vídeo', hint: 'Arrastra para girar · rueda para acercar · toca las etiquetas',
+    tag: { mas: 'El Mas', torre: 'Torre de los Corsarios', pahissa: 'La Pahissa', pool: 'Piscina', patioT: 'Patio', garden: 'Jardín', montgri: 'Montgrí' }, cards: FACTS_ES, src: 'Datos: masjofre.com. Volúmenes y posiciones en 3D: estimación.',
+    mailS: 'Demo 3D Mas Jofre', mailB: (s) => `Hola Yahya,\n\nHe visto la demo 3D de Mas Jofre. Montaje que estaba mirando:\n\n· Invitados: ${s.g}\n· Espacio: ${s.sp}\n· Mesas: ${s.st} (${s.n})\n\n` },
+  en: { loading: 'Preparing the estate…', sub: 'Pals · Empordà · 3D tour', intro: 'Historic farmhouse documented since 1570. Design your wedding set-up here: guests, space, tables and light.', hGuests: 'Guests', guestsUnit: 'people', hSpace: 'Space', jardin: 'Garden', patio: 'Courtyard', sala: 'Hall', hStyle: 'Tables', imperial: 'Long tables', round: 'Round', hExtras: 'Extras', ceremony: 'Ceremony', dance: 'Dance floor', festoons: 'Festoons', hTime: 'Light', day: 'Day', sunset: 'Sunset', night: 'Night',
+    tables: 'tables', tablesImp: 'long tables', chairs: 'dinner chairs', cerSeats: 'ceremony chairs', max: 'max', note: 'Indicative demo made by Yahya from Mas Jofre\'s public information. Layout, sizes and banquet capacity are estimates.', cta: 'Let\'s talk about this demo', credit: 'Unofficial 3D model · CC0 textures (Poly Haven)',
+    vAerial: 'Aerial', vBanquet: 'Banquet', vCeremony: 'Ceremony', vPatio: 'Courtyard', vPool: 'Pool & tower', vPorch: 'Pahissa porch', vPlan: 'Plan', vTour: '▶ Tour', vVideo: '▶ Video', hint: 'Drag to orbit · scroll to zoom · tap the labels',
+    tag: { mas: 'El Mas', torre: 'Torre de los Corsarios', pahissa: 'La Pahissa', pool: 'Pool', patioT: 'Courtyard', garden: 'Garden', montgri: 'Montgrí' }, cards: FACTS_EN, src: 'Facts: masjofre.com. 3D volumes and positions: estimated.',
+    mailS: 'Mas Jofre 3D demo', mailB: (s) => `Hi Yahya,\n\nI have seen the Mas Jofre 3D demo. Set-up I was looking at:\n\n· Guests: ${s.g}\n· Space: ${s.sp}\n· Tables: ${s.st} (${s.n})\n\n` },
+};
+const caps = () => Object.fromEntries(Object.keys(ZONES).map(k => [k, capacity(k, state.style, state.dance)]));
+function updateUI() { const T = I[state.lang], cp = caps();
+  document.documentElement.lang = state.lang; $('#lang').textContent = state.lang === 'es' ? 'EN' : 'ES';
+  document.querySelectorAll('[data-i]').forEach(e => { if (typeof T[e.dataset.i] === 'string') e.textContent = T[e.dataset.i]; });
+  $('#gN').textContent = state.guests; $('#sTables').textContent = L.tables; $('#sTablesL').textContent = state.style === 'imperial' ? T.tablesImp : T.tables;
+  $('#sChairs').textContent = L.chairCount; $('#sCer').textContent = state.ceremony ? L.cerCount : '—';
+  document.querySelectorAll('#space button').forEach(b => { b.classList.toggle('on', b.dataset.v === state.space); b.classList.toggle('over', state.guests > cp[b.dataset.v]); b.querySelector('small').textContent = `${T.max} ${cp[b.dataset.v]}`; });
+  for (const k of ['style', 'time']) document.querySelectorAll(`#${k} button`).forEach(b => b.classList.toggle('on', b.dataset.v === state[k]));
+  document.querySelectorAll('#extras button').forEach(b => b.classList.toggle('on', !!state[b.dataset.v]));
+  TAGS.forEach(t => t.el.textContent = T.tag[t.id]);
+  $('#cta').href = 'mailto:' + CONTACT + '?subject=' + encodeURIComponent(T.mailS) + '&body=' + encodeURIComponent(T.mailB({ g: state.guests, sp: T[state.space], st: T[state.style], n: L.tables }));
+}
+function clampGuests() { const c = capacity(state.space, state.style, state.dance); if (state.guests > c) { state.guests = c; $('#guests').value = c; } }
+function fitSpace() { const cp = caps(); if (state.guests > cp[state.space]) state.space = ['jardin', 'patio', 'sala'].find(k => state.guests <= cp[k]) || 'jardin'; }
+const reframe = () => { if (!tour.on && ['banquet', 'plan'].includes(state.view)) go(state.view, 1.2); };
+$('#guests').oninput = (e) => { state.guests = +e.target.value; fitSpace(); buildLayout(); reframe(); };
+$('#space').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; state.space = b.dataset.v; clampGuests(); buildLayout(); stopTour(); go(state.view === 'plan' ? 'plan' : 'banquet', 1.8); };
+$('#style').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; state.style = b.dataset.v; clampGuests(); buildLayout(); stopTour(); go(state.view === 'plan' ? 'plan' : 'banquet', 1.6); };
+$('#extras').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; const k = b.dataset.v; state[k] = !state[k]; clampGuests(); buildLayout(); stopTour();
+  if (k === 'ceremony' && state.ceremony) go('ceremony', 1.8); else if (k !== 'ceremony' && !['banquet', 'plan'].includes(state.view)) go('banquet', 1.6); else reframe(); };
+$('#time').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; state.time = b.dataset.v; setTime(state.time); updateUI(); };
+$('#views').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; $('#card').classList.remove('show');
+  if (b.dataset.v === 'video') { stopTour(); const v = $('#vidEl'); if (!v.src) v.src = 'video/demo.mp4'; $('#vid').classList.add('show'); v.play().catch(() => {}); return; }
+  if (b.dataset.v === 'tour') { tour.on = true; tour.i = 0; tour.t = 0; controls.autoRotate = true; controls.autoRotateSpeed = .45; go(TOUR[0], 2.5); } else { stopTour(); go(b.dataset.v); } };
+$('#lang').onclick = () => { state.lang = state.lang === 'es' ? 'en' : 'es'; updateUI(); if ($('#card').classList.contains('show')) $('#card').classList.remove('show'); };
+
+/* ---------- go ---------- */
+const qp = new URLSearchParams(location.search);
+for (const k of ['space', 'style', 'time', 'view', 'lang']) if (qp.get(k)) state[k] = qp.get(k);
+for (const k of ['ceremony', 'dance', 'festoons']) if (qp.has(k)) state[k] = qp.get(k) !== '0';
+if (qp.get('guests')) state.guests = Math.max(GUESTS.min, Math.min(GUESTS.max, Math.round((+qp.get('guests') || 120) / 10) * 10));
+if (!ZONES[state.space]) state.space = 'jardin'; if (!TIMES[state.time]) state.time = 'sunset'; if (!I[state.lang]) state.lang = 'es';
+fitSpace(); $('#guests').value = state.guests;
+buildLayout(); await setTime(state.time); go(state.view, qp.has('view') ? .01 : 3.4);
+const clock = new THREE.Clock(); let first = true;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), .1);
+  if (tw) { tw.k = Math.min(1, tw.k + dt / tw.dur); const e = tw.k < .5 ? 4 * tw.k ** 3 : 1 - (-2 * tw.k + 2) ** 3 / 2; camera.position.lerpVectors(tw.p0, tw.p1, e); controls.target.lerpVectors(tw.t0, tw.t1, e); if (tw.k >= 1) tw = null; }
+  if (tour.on) { tour.t += dt; if (tour.t > 8) { tour.t = 0; tour.i = (tour.i + 1) % TOUR.length; go(TOUR[tour.i], 3); } }
+  controls.update(); if (camera.position.y < .7) camera.position.y = .7;
+  composer.render(); placeTags();
+  if (first) { first = false; $('#loader').classList.add('done'); }
+});
+window.__tour = { state, go, setTime, buildLayout, camera, controls, THREE, scene, composer, renderer, viewPose, updateUI, getLayout: () => L, tour };
+</script>
+</body>
+</html>

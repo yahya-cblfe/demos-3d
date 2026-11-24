@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hotel Horta d'en Rahola · Cadaqués · Tour 3D (demo)</title>
+<meta name="description" content="Demo orientativa en 3D del Hotel Horta d'en Rahola (Cadaqués): jardín, piscina de agua salada, chill-out y habitación tipo.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='5' y='10' width='22' height='18' fill='%23f4f1ea'/%3E%3Cpath d='M3 11 16 4 29 11Z' fill='%23b0603f'/%3E%3Crect x='13' y='18' width='6' height='10' fill='%237a909c'/%3E%3C/svg%3E">
+<style>
+@font-face{font-family:"Cormorant Garamond";font-weight:600;font-display:swap;src:url(vendor/fonts/cormorant-garamond-600-latin.woff2) format("woff2")}
+@font-face{font-family:Assistant;font-weight:300 800;font-display:swap;src:url(vendor/fonts/assistant-latin.woff2) format("woff2")}
+:root{--ink:#f6f3ec;--mute:#c3c8c9;--panel:rgba(24,33,38,.72);--line:rgba(246,243,236,.16);--acc:#d2457f;--acc-ink:#fff;--blue:#8fa6b2}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#16202a;color:var(--ink);font-family:Assistant,system-ui,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+#loader{position:fixed;inset:0;display:grid;place-items:center;background:#16202a;z-index:20;transition:opacity .9s}
+#loader.done{opacity:0;pointer-events:none}
+#loader div{font:600 34px "Cormorant Garamond",serif;letter-spacing:.06em;text-align:center}
+#loader small{display:block;font:500 12px Assistant;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);margin-top:10px}
+#loader i{display:block;width:160px;height:2px;background:rgba(246,243,236,.15);margin:18px auto 0;overflow:hidden;border-radius:2px}
+#loader i b{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}
+.panel{position:fixed;left:16px;top:16px;bottom:16px;width:320px;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;overflow:auto;z-index:5;scrollbar-width:thin}
+.brand{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+h1{font:600 30px/1 "Cormorant Garamond",serif;margin:0;letter-spacing:.01em}
+.sub{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:6px 0 0}
+.lang{background:none;border:1px solid var(--line);color:var(--ink);border-radius:99px;font:600 11px Assistant;padding:5px 10px;cursor:pointer}
+.lang:hover{background:rgba(246,243,236,.1)}
+.intro{font-size:13px;line-height:1.45;color:var(--mute);margin:12px 0 0}
+h2{font:700 11px Assistant;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:18px 0 8px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+.seg button,.views button,.big{background:rgba(246,243,236,.06);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:8px 6px;font:600 13px Assistant;cursor:pointer;transition:.15s}
+.seg button:hover,.views button:hover{background:rgba(246,243,236,.13)}
+.seg button.on,.views button.on{background:var(--ink);border-color:var(--ink);color:#18232a}
+.big{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;background:var(--acc);border-color:var(--acc);color:var(--acc-ink);font-size:14.5px;font-weight:700}
+.big:hover{filter:brightness(1.08)}
+.big.on{background:rgba(246,243,236,.06);border-color:var(--line);color:var(--ink)}
+#roomCtl{margin-top:8px;display:none}#roomCtl.show{display:block}
+#roomCtl .seg{margin-bottom:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips span{font-size:12px;border:1px solid var(--line);border-radius:99px;padding:4px 10px;color:#e6e9e8;cursor:pointer}
+.chips span:hover{background:rgba(246,243,236,.1)}
+.chips span b{color:var(--acc);margin-right:5px}
+.note{font-size:11.5px;line-height:1.5;color:var(--mute);margin:14px 0 0;border-left:2px solid var(--acc);padding-left:9px}
+.cta{display:block;margin-top:14px;text-align:center;background:var(--ink);color:#18232a;text-decoration:none;font:700 13.5px Assistant;padding:12px;border-radius:10px}
+.cta:hover{background:#fff}
+.cta2{display:block;margin-top:7px;text-align:center;color:var(--ink);text-decoration:none;font:600 12.5px Assistant;padding:9px;border-radius:10px;border:1px solid var(--line)}
+.cta2:hover{background:rgba(246,243,236,.08)}
+.credit{font-size:10.5px;color:#8c979c;margin:9px 0 0;text-align:center}
+.views{position:fixed;left:352px;right:16px;bottom:16px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;z-index:5}
+.views button{background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:9px 14px;border-radius:99px;white-space:nowrap}
+.hint{position:fixed;right:16px;top:16px;font-size:12px;color:var(--ink);background:var(--panel);border:1px solid var(--line);padding:7px 12px;border-radius:99px;z-index:5;backdrop-filter:blur(12px)}
+#tags{position:fixed;inset:0;pointer-events:none;z-index:4}
+.tag{position:absolute;transform:translate(-50%,-100%);pointer-events:auto;cursor:pointer;background:rgba(24,33,38,.8);border:1px solid rgba(246,243,236,.55);color:var(--ink);font:700 11.5px Assistant;letter-spacing:.05em;padding:5px 10px 5px 8px;border-radius:99px;white-space:nowrap;backdrop-filter:blur(8px);transition:opacity .25s}
+.tag::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--acc);margin-right:6px;vertical-align:1px;box-shadow:0 0 0 0 rgba(210,69,127,.6);animation:pulse 2.4s infinite}
+.tag::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:14px;background:rgba(246,243,236,.55)}
+.tag.room{background:var(--acc);border-color:var(--acc)}.tag.room::before{background:#fff}
+.tag.far{opacity:0;pointer-events:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(210,69,127,.65)}70%{box-shadow:0 0 0 7px rgba(210,69,127,0)}100%{box-shadow:0 0 0 0 rgba(210,69,127,0)}}
+#card{position:fixed;right:16px;top:60px;width:330px;max-height:calc(100% - 140px);overflow:auto;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:16px 18px;z-index:6;display:none}
+#card.show{display:block}
+#card h3{font:600 26px/1.05 "Cormorant Garamond",serif;margin:0 26px 4px 0}
+#card .k{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#f08db5;margin:0 0 8px}
+#card p{font-size:13.5px;line-height:1.5;margin:8px 0;color:#e6e9e8}
+#card ul{margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.55;color:#e6e9e8}
+#card .x{position:absolute;right:10px;top:10px;background:none;border:0;color:var(--mute);font-size:20px;cursor:pointer;line-height:1}
+#card .go{margin-top:10px;width:100%;background:var(--ink);color:#18232a;border:0;border-radius:9px;padding:10px;font:700 13px Assistant;cursor:pointer}
+#card .src{font-size:11px;color:#8c979c;margin-top:10px}
+#vid{position:fixed;inset:0;z-index:30;background:rgba(8,12,15,.88);display:none;place-items:center;padding:4vw}#vid.show{display:grid}#vid>div{position:relative;width:min(1200px,92vw)}#vid video{width:100%;border-radius:10px;display:block;background:#000}#vid .x{position:absolute;right:-6px;top:-38px;background:none;border:0;color:#f6f3ec;font-size:30px;cursor:pointer}
+#roomTitle{position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:5;background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:8px 16px;font:600 13px Assistant;letter-spacing:.08em;display:none;backdrop-filter:blur(12px);white-space:nowrap}
+#roomTitle.show{display:block}#roomTitle button{margin-left:10px;background:none;border:1px solid var(--line);color:var(--ink);border-radius:99px;padding:3px 10px;font:600 12px Assistant;cursor:pointer}
+@media (max-width:760px){
+ .panel{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:42vh;padding:13px 14px}
+ .intro{display:none}
+ .views{left:8px;right:8px;top:8px;bottom:auto;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+ .views button{padding:8px 12px}
+ .hint{display:none} h1{font-size:25px}
+ #card{left:8px;right:8px;width:auto;top:58px;max-height:40vh}
+ #roomTitle{top:58px;font-size:12px}
+ .tag{font-size:10.5px;padding:4px 8px 4px 7px}
+}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.js","three/addons/":"./vendor/three/addons/"}}</script>
+</head>
+<body>
+<div id="loader"><div>Horta d'en Rahola<small data-i="loading">Preparando el jardín…</small><i><b id="bar"></b></i></div></div>
+<canvas id="c"></canvas>
+<div id="tags"></div>
+<div id="roomTitle"><span data-i="roomTitle">Habitación tipo · orientativa</span><button id="backGarden" data-i="backGarden">← Jardín</button></div>
+
+<aside class="panel">
+  <div class="brand">
+    <div><h1>Hotel Horta d'en Rahola</h1><p class="sub" data-i="sub">Cadaqués · Tour 3D</p></div>
+    <button class="lang" id="lang" aria-label="English / Español">EN</button>
+  </div>
+  <p class="intro" data-i="intro">La antigua casa de la familia Rahola, reformada como un pequeño hotel tranquilo y con encanto. Recorre el jardín y toca las etiquetas.</p>
+
+  <h2 data-i="hRoom">Habitación tipo</h2>
+  <button class="big" id="roomBtn"><span data-i="roomBtn">Ver habitación</span> →</button>
+  <div id="roomCtl">
+    <div class="seg" id="roomViews">
+      <button data-v="room" data-i="rDoll">Maqueta</button>
+      <button data-v="roomIn" data-i="rIn">Dentro</button>
+      <button data-v="balcony" data-i="rBalc">Balcón</button>
+    </div>
+    <div class="seg" id="roomLights"><button data-v="1" data-i="lightsOn">Luces encendidas</button><button data-v="0" data-i="lightsOff">Apagadas</button></div>
+  </div>
+
+  <h2 data-i="hTime">Luz</h2>
+  <div class="seg" id="time">
+    <button data-v="day" data-i="day">Día</button>
+    <button data-v="sunset" data-i="sunset">Atardecer</button>
+    <button data-v="night" data-i="night">Noche</button>
+  </div>
+
+  <h2 data-i="hServ">En el hotel</h2>
+  <div class="chips" id="chips"></div>
+
+  <p class="note" data-i="note">Demo orientativa creada por Yahya a partir de la información pública del Hotel Horta d'en Rahola. Distribución, medidas y número de habitaciones aproximados; el pueblo del fondo es una recreación simplificada.</p>
+  <a class="cta" id="cta" href="#" data-i="cta">Hablemos de esta demo</a>
+  <a class="cta2" href="https://hortacadaques.com/es" target="_blank" rel="noopener" data-i="book">Reservar en su web ↗</a>
+  <p class="credit" data-i="credit">Modelo 3D no oficial · texturas y HDRI CC0 (Poly Haven)</p>
+</aside>
+
+<nav class="views" id="views">
+  <button data-v="aerial" data-i="vAerial">Jardín</button>
+  <button data-v="pool" data-i="vPool">Piscina</button>
+  <button data-v="chill" data-i="vChill">Chill-out</button>
+  <button data-v="lounge" data-i="vLounge">Salón</button>
+  <button data-v="room" data-i="vRoom">Habitación</button>
+  <button data-v="night" data-i="vNight">Noche</button>
+  <button data-v="tour" data-i="vTour">▶ Tour</button>
+  <button data-v="video" data-i="vVideo">▶ Vídeo</button>
+</nav>
+<div id="vid"><div><button class="x" id="vidX" aria-label="Cerrar">×</button><video id="vidEl" controls playsinline preload="none" poster="video/poster.jpg"></video></div></div>
+<div class="hint" data-i="hint">Arrastra para girar · rueda para acercar · toca las etiquetas</div>
+<div id="card" role="dialog"><button class="x" id="cardX" aria-label="Cerrar">×</button><div id="cardBody"></div></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const CONTACT = 'yahyaelhmidi11@gmail.com';   // Yahya (author of the demo) - the CTA never writes to the hotel
+
+/* ---------- basics ---------- */
+let seed = 7; const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const $ = (s) => document.querySelector(s);
+const canvas = $('#c'), bar = $('#bar');
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); }
+catch (e) { $('#loader small').textContent = 'Este navegador no tiene WebGL activo · WebGL is not available in this browser'; throw e; }
+const mobile = matchMedia('(max-width: 760px)').matches;
+renderer.setPixelRatio(Math.min(devicePixelRatio, mobile ? 1.75 : 2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.NeutralToneMapping;
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0xc9dcec, 0.0012);
+const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 6000);
+camera.position.set(-120, 90, 160);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = .07; controls.maxPolarAngle = Math.PI * .495;
+controls.minDistance = .4; controls.maxDistance = 260; controls.target.set(2, 0, -2);
+
+const rt = new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, samples: 4 });
+const composer = new EffectComposer(renderer, rt);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(2, 2), .4, .6, 1.0); composer.addPass(bloom);
+composer.addPass(new OutputPass());
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); composer.setSize(w, h); camera.aspect = w / h; camera.fov = (camera.aspect < .8 ? 64 : 46) + (window.__indoor ? 14 : 0);
+  const pn = document.querySelector('.panel'), r = pn ? pn.getBoundingClientRect() : { width: 0, height: 0 }, narrow = w <= 760;
+  const px = narrow ? 0 : Math.min(r.width + 16, w * .4), py = narrow ? Math.min(r.height + 8, h * .5) : 0;
+  camera.setViewOffset(w, h, -px / 2, py / 2 - (narrow ? 25 : 0), w, h); camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+/* ---------- assets (built in Blender: blender/build.py) ---------- */
+const manager = new THREE.LoadingManager(); manager.onProgress = (_, a, b) => { bar.style.width = Math.round(a / b * 100) + '%'; };
+const AS = 'assets/', tl = new THREE.TextureLoader(manager), gltf = new GLTFLoader(manager), rgbe = new RGBELoader();
+const ANISO = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+const texCache = {};
+function ptex(id, kind, rx = 1, ry = 1, flip = false) { const k = [id, kind, rx, ry, flip].join(); if (texCache[k]) return texCache[k];
+  const t = tl.load(`${AS}tex/${id}_${kind}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); t.anisotropy = ANISO; t.flipY = flip; if (kind === 'diff') t.colorSpace = THREE.SRGBColorSpace; return texCache[k] = t; }
+function pbr(id, rx, ry, o = {}) { const arm = ptex(id, 'arm', rx, ry); return new THREE.MeshStandardMaterial({ map: ptex(id, 'diff', rx, ry), normalMap: ptex(id, 'nor_gl', rx, ry), roughnessMap: arm, metalnessMap: arm, aoMap: arm, metalness: 1, roughness: 1, ...o }); }
+function canvasTex(w, h, draw, srgb = true) { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = ANISO; return t; }
+function normalFromHeight(w, h, H, k = 2) {   // H(x,y) -> 0..1 height; returns a tangent-space normal map
+  return canvasTex(w, h, (c) => { const img = c.createImageData(w, h), d = img.data;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const dx = (H((x + 1) % w, y) - H((x - 1 + w) % w, y)) * k, dy = (H(x, (y + 1) % h) - H(x, (y - 1 + h) % h)) * k, l = Math.hypot(dx, dy, 1), i = (y * w + x) * 4;
+      d[i] = (-dx / l * .5 + .5) * 255; d[i + 1] = (dy / l * .5 + .5) * 255; d[i + 2] = (1 / l * .5 + .5) * 255; d[i + 3] = 255; }
+    c.putImageData(img, 0, 0); }, false); }
+const [venue, land, TREES] = await Promise.all([gltf.loadAsync(AS + 'venue.glb'), gltf.loadAsync(AS + 'land.glb'), fetch(AS + 'trees.json').then(r => r.json())]);
+
+/* ---------- materials ---------- */
+const S = (o) => new THREE.MeshStandardMaterial(o);
+const linenN = ptex('rough_linen', 'nor_gl', 2, 2);
+const weaveN = normalFromHeight(128, 128, (x, y) => { const u = x / 16, v = y / 16, a = Math.floor(u) + Math.floor(v); const s = (a % 2 ? Math.sin((u % 1) * Math.PI) : Math.sin((v % 1) * Math.PI)); return .5 + .5 * s; }, 3);
+weaveN.repeat.set(6, 6);
+const waterN = normalFromHeight(256, 256, (x, y) => { const u = x / 256 * Math.PI * 2, v = y / 256 * Math.PI * 2; return .5 + .18 * Math.sin(u * 3 + v * 2) + .12 * Math.sin(u * 7 - v * 5 + 1) + .08 * Math.sin(u * 13 + v * 11 + 2) + .05 * Math.sin(-u * 17 + v * 19); }, 1.2);
+waterN.repeat.set(3, 1.2);
+const foliage = (n) => { const t = tl.load(`${AS}${n}.png`); t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; t.anisotropy = ANISO; return t; };
+// realism pass: clumped leaf-card vegetation (blender/veg.py), textures in assets/veg/
+function vtex(f, srgb = true) { const k = 'veg/' + f; if (texCache[k]) return texCache[k]; const t = tl.load(`${AS}veg/${f}`); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.flipY = false; t.anisotropy = ANISO; return texCache[k] = t; }
+function vegMat(k) {
+  if (k === 'bark') return S({ map: vtex('bark_diff.jpg'), normalMap: vtex('bark_nor.jpg', false), roughness: .95 });
+  if (k === 'core' || k === 'core_pine') return S({ map: vtex('hedge.jpg'), color: k === 'core' ? 0x8aa070 : 0x5f7058, roughness: .95 });
+  if (k === 'hedge' || k === 'palm_trunk') return S({ map: vtex(k + '.jpg'), roughness: .9 });
+  return S({ map: vtex(k + '.png'), alphaTest: .45, side: THREE.DoubleSide, roughness: .85, color: new THREE.Color(1.18, 1.2, 1.12), emissive: 0x1c2412, emissiveIntensity: .35 });
+}
+const leafN = normalFromHeight(128, 128, (x, y) => { let s = 0; for (let k = 0; k < 4; k++) s += Math.sin(x * (.21 + k * .17) + k * 2.1) * Math.cos(y * (.19 + k * .13) + k); return .5 + s * .12; }, 2.2);
+// GLB material name -> PBR set (the GLB carries geometry, UVs and names only)
+const MAP = { Plaster: ['white_plaster_02', 0xffffff], InPlaster: ['white_plaster_02', 0xfffcf4], Paving: ['terracotta_floor_tiles'], StoneDeck: ['white_plaster_02', 0xc2bdb3],
+  Teak: ['weathered_brown_planks', 0xd9b48c], Wood: ['weathered_brown_planks', 0xc8a57e], LightWood: ['weathered_brown_planks', 0xf6e6cc], RoofTile: ['clay_roof_tiles_02', 0xe8cdb8],
+  Stone: ['old_stone_wall', 0xd8d0c4], Gravel: ['gravelly_sand', 0xe6dccb] };
+const matCache = {};
+const glowMats = new Set(), lampMats = new Set(), roofs = [], ceilRoom = [];
+let waterMat = null, poolMat = null, villageWin = null;
+const unit = new THREE.BoxGeometry(1, 1, 1);
+const Mx = (x, y, z, ry = 0, sx = 1, sy = 1, sz = 1) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new THREE.Vector3(sx, sy, sz));
+function inst(geo, mat, ms, parent, cast = true) { if (!ms.length) return null; const m = new THREE.InstancedMesh(geo, mat, ms.length); ms.forEach((x, i) => m.setMatrixAt(i, x)); m.castShadow = cast; m.receiveShadow = true; m.computeBoundingSphere(); parent.add(m); return m; }
+
+/* ---------- hotel + garden ---------- */
+venue.scene.traverse(o => { if (!o.isMesh) return; o.castShadow = o.receiveShadow = true;
+  if (o.name.startsWith('ROOF_')) roofs.push(o); if (o.name.startsWith('CEIL_room')) ceilRoom.push(o);
+  o.material = [].concat(o.material).map(m => {
+    if (m.name.startsWith('Veg_')) return matCache[m.name] ||= vegMat(m.name.slice(4));
+    if (m.name === 'LightWood') return matCache.LightWood ||= S({ color: 0xcfae86, normalMap: ptex('weathered_brown_planks', 'nor_gl'), normalScale: new THREE.Vector2(.6, .6), roughness: .65 });
+    if (m.name === 'Plaster' || m.name === 'InPlaster') return matCache[m.name] ||= S({ color: m.name === 'Plaster' ? 0xf6f4ee : 0xf3efe6, normalMap: ptex('white_plaster_02', 'nor_gl'), normalScale: new THREE.Vector2(.7, .7), roughness: .92, side: m.name === 'InPlaster' ? THREE.DoubleSide : THREE.FrontSide });
+    if (MAP[m.name]) { const [id, tint] = MAP[m.name]; return matCache[m.name] ||= pbr(id, 1, 1, tint ? { color: tint } : {}); }
+    if (m.name === 'Glass') { m.emissive.set(0xffc27a); m.roughness = .04; m.metalness = .2; m.envMapIntensity = 1.8; m.transparent = true; m.depthWrite = false; m.opacity = .35; glowMats.add(m); }
+    if (m.name === 'Lamp') lampMats.add(m);
+    if (m.name === 'Water') return waterMat ||= new THREE.MeshPhysicalMaterial({ color: 0x3fb3bf, roughness: .03, metalness: 0, transmission: 0, transparent: true, opacity: .78, normalMap: waterN, normalScale: new THREE.Vector2(.35, .35), envMapIntensity: 1.4, clearcoat: 1, clearcoatRoughness: .05 });
+    if (m.name === 'PoolTile') { m.emissive = new THREE.Color(0x2fd4e0); m.emissiveIntensity = 0; poolMat = m; }
+    if (['Linen', 'Cushion', 'Duvet', 'Accent', 'Throw'].includes(m.name)) return matCache[m.name] ||= S({ color: m.color, roughness: .95, normalMap: linenN, normalScale: new THREE.Vector2(.5, .5) });
+    if (m.name === 'Rattan') { m.normalMap = weaveN; m.normalScale = new THREE.Vector2(.9, .9); m.roughness = .8; }
+    if (['MulberryLeaf', 'Leaf', 'Bougainvillea'].includes(m.name)) return matCache[m.name] ||= S({ map: foliage(m.name === 'Bougainvillea' ? 'flowers' : 'leaves'), alphaTest: .5, side: THREE.DoubleSide, roughness: .8, color: m.name === 'MulberryLeaf' ? 0xd8f0b8 : 0xffffff });
+    if (m.name === 'PalmLeaf') { m.side = THREE.DoubleSide; m.roughness = .7; }
+    if (m.name === 'ChalkboardText') { const t = tl.load(AS + 'chalk.jpg'); t.colorSpace = THREE.SRGBColorSpace; t.flipY = false; return S({ map: t, roughness: .95 }); }
+    if (m.name === 'EVLed') { m.emissiveIntensity = 2; }
+    if (m.name === 'InPlaster') m.side = THREE.DoubleSide;
+    return m; });
+  if (o.material.length === 1) o.material = o.material[0];
+  if (o.name.startsWith('Lounge_vaults')) o.material.side = THREE.DoubleSide; });
+scene.add(venue.scene);
+// lawn over the plot (with a hole for the pool basin)
+{ const sh = new THREE.Shape(); sh.moveTo(-30, -27.5); sh.lineTo(32.5, -27.5); sh.lineTo(32.5, 22); sh.lineTo(-30, 22); sh.closePath();
+  const hole = new THREE.Path(); hole.moveTo(-6.25, 5); hole.lineTo(-6.25, 10); hole.lineTo(6.25, 10); hole.lineTo(6.25, 5); hole.closePath(); sh.holes.push(hole);
+  const g = new THREE.ShapeGeometry(sh).rotateX(Math.PI / 2); g.scale(1, 1, 1);
+  const p = g.attributes.position, uv = g.attributes.uv, col = [];
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); uv.setXY(i, x / 2.2, z / 2.2); const n = .92 + .08 * Math.sin(x * .13 + 1) * Math.cos(z * .11) + .04 * Math.sin(x * .37 + z * .29); col.push(n * 1.02, n, n * .92); }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const lm = pbr('leafy_grass', 1, 1, { color: 0xb3d384, vertexColors: true, side: THREE.DoubleSide }); lm.polygonOffset = true; lm.polygonOffsetFactor = -1;
+  const lawn = new THREE.Mesh(g, lm); lawn.position.y = .006; lawn.receiveShadow = true; scene.add(lawn); }
+// land: terrain round the bay, the sea and the white village (simplified backdrop)
+land.scene.traverse(o => { if (!o.isMesh) return; o.receiveShadow = true;
+  if (o.name === 'Terrain') o.material = S({ vertexColors: true, roughness: 1, color: 0xd0d0c0, map: ptex('leafy_grass', 'diff', .35, .35), normalMap: ptex('leafy_grass', 'nor_gl', .35, .35) });
+  if (o.name.startsWith('Sea')) o.material = new THREE.MeshPhysicalMaterial({ color: 0x2c6d8a, roughness: .12, metalness: 0, normalMap: waterN, normalScale: new THREE.Vector2(.25, .25), envMapIntensity: 1.2 });
+  if (o.name === 'Village_windows') { o.material = S({ color: 0x3c4a55, roughness: .5, emissive: 0xffc070, emissiveIntensity: 0, side: THREE.DoubleSide }); villageWin = o.material; }
+  if (o.name === 'Village_white') { o.material.roughness = .85; o.castShadow = true; }
+});
+scene.add(land.scene);
+// hillside trees: billboards rendered from Poly Haven scans (Mas Gelabert pipeline)
+{ const [name, sp] = Object.entries(TREES.species)[0];
+  const side = tl.load(`${AS}trees/${name}_side.png`), top = tl.load(`${AS}trees/${name}_top.png`); side.colorSpace = top.colorSpace = THREE.SRGBColorSpace; side.anisotropy = top.anisotropy = ANISO;
+  const q = sp.q, pos = [], uv = [], idx = [];
+  for (const [ang, flip] of [[0, 1], [0, -1], [Math.PI / 2, 1], [Math.PI / 2, -1]]) { const c = Math.cos(ang), s = Math.sin(ang), b = pos.length / 3, ox = -sp.ox / sp.h;
+    for (const [u, v] of [[0, 0], [1, 0], [1, 1], [0, 1]]) { const lx = (u - .5) * q * flip + ox * flip; pos.push(lx * c, v * q, lx * s); uv.push(u, v); }
+    idx.push(b, b + 1, b + 2, b, b + 2, b + 3); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setAttribute('normal', new THREE.Float32BufferAttribute(pos.map((_, i) => i % 3 === 1 ? 1 : 0), 3)); g.setIndex(idx);
+  const tg = new THREE.PlaneGeometry(sp.tq, sp.tq).rotateX(-Math.PI / 2).translate(0, .7, 0);
+  const o = { alphaTest: .4, roughness: 1, color: new THREE.Color(1.5, 1.6, 1.25) };
+  const ms = TREES.trees.map(t => Mx(t.x, t.y - .2, t.z, t.r, t.h, t.h, t.h));
+  inst(g, S({ map: side, ...o }), ms, scene, false); const tm = inst(tg, S({ map: top, side: THREE.DoubleSide, ...o }), ms, scene, false); tm.receiveShadow = false; }
+
+/* ---------- lights & sky ---------- */
+const sun = new THREE.DirectionalLight(0xffffff, 3); sun.castShadow = true; sun.shadow.mapSize.set(mobile ? 2048 : 4096, mobile ? 2048 : 4096);
+Object.assign(sun.shadow.camera, { left: -38, right: 38, top: 38, bottom: -38, near: 10, far: 300 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .04; sun.target.position.set(1, 0, -3); scene.add(sun, sun.target);
+const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x8a8a62, 1); scene.add(hemi);
+const PL = (c, x, y, z, d = 12, decay = 1.6, shadow = false) => { const l = new THREE.PointLight(c, 0, d, decay); l.position.set(x, y, z); if (shadow) { l.castShadow = true; l.shadow.mapSize.set(512, 512); l.shadow.bias = -.002; } scene.add(l); return l; };
+// warm interior + terrace + pool lights (three.js coords: x, up, -north)
+const roomLights = [PL(0xffdcb4, 5.75, 6.1, -10.9, 9, 1.4), PL(0xffb46a, 4.45, 4.7, -12.9, 3.5, 1.6), PL(0xffb46a, 7.05, 4.7, -12.9, 3.5, 1.6)];
+const loungeLights = [PL(0xffc27a, -5.6, 2.6, -10.6, 9), PL(0xffc27a, -2.3, 2.6, -10.6, 9), PL(0xffc27a, -4, 2.6, -15.4, 9), PL(0xffc27a, 5.5, 2.6, -12.5, 9)];
+const gardenLights = [PL(0xffb86a, -17.5, 2.5, -.5, 12), PL(0xffb86a, 0, 2.8, -5.2, 14), PL(0xffb86a, -6, 2.4, -4.4, 9), PL(0xffb86a, 12.25, 2.6, -8.5, 8)];
+const poolLights = [PL(0x55e0ff, -3.5, -.6, 7.5, 9, 1.3), PL(0x55e0ff, 3.5, -.6, 7.5, 9, 1.3)];
+const SKIES = { day: ['kloofendal_48d_partly_cloudy_puresky', .5951], sunset: ['belfast_sunset_puresky', .6049], night: ['qwantani_night_puresky', .783] }, skyCache = {};
+function loadSky(k) { if (!skyCache[k]) { const [f] = SKIES[k]; skyCache[k] = Promise.all([rgbe.loadAsync(`${AS}hdri/${f}_2k.hdr`), rgbe.loadAsync(`${AS}hdri/${f}_env.hdr`)]).then(([bg, env]) => { bg.mapping = env.mapping = THREE.EquirectangularReflectionMapping; return { bg, env }; }); } return skyCache[k]; }
+const TIMES = {   // az: three.js azimuth (0 = sun in the south, over the bay; negative = west)
+  day:    { el: 52, az: -28, exp: .85, sunC: 0xfff3e0, sunI: 4.0, hemiI: .55, sky: 0xcfe2ff, gnd: 0x8a8a62, env: .75, bgI: .85, fog: 0xcfdde8, fogD: .0011, glow: 0, lamp: .6, pool: 0, room: 2.5, lounge: 6, garden: 0, bloom: 0 },
+  sunset: { el: 9, az: -78, exp: .66, sunC: 0xffa45e, sunI: 3.1, hemiI: .25, sky: 0xffc9a8, gnd: 0x5b4e3a, env: .6, bgI: .9, fog: 0xdcc2b6, fogD: .0013, glow: 1.0, lamp: 2.4, pool: 1.2, room: 4, lounge: 9, garden: 10, bloom: .12 },
+  night:  { el: 55, az: 30, exp: .95, sunC: 0x93a8d6, sunI: .3, hemiI: .09, sky: 0x2a3558, gnd: 0x10140c, env: .04, bgI: .06, fog: 0x0a1020, fogD: .0016, glow: 1.25, lamp: 4, pool: 2.4, room: 7, lounge: 14, garden: 22, bloom: .42 }
+};
+let timeReq = 0;
+async function setTime(k) {
+  state.time = k; const t = TIMES[k], req = ++timeReq, { bg, env } = await loadSky(k); if (req !== timeReq) return;
+  const az = THREE.MathUtils.degToRad(t.az), dir = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - t.el), az);
+  const rot = (SKIES[k][1] - .5) * Math.PI * 2 - (Math.PI / 2 - az);        // turn the HDRI so its sun sits where the shadow-casting light is
+  scene.background = bg; scene.environment = env; scene.backgroundRotation.y = scene.environmentRotation.y = rot; scene.backgroundIntensity = t.bgI; scene.environmentIntensity = t.env;
+  sun.position.copy(dir).multiplyScalar(120).add(sun.target.position); sun.color.set(t.sunC); sun.intensity = t.sunI;
+  hemi.color.set(t.sky); hemi.groundColor.set(t.gnd); hemi.intensity = t.hemiI; scene.fog.color.set(t.fog); scene.fog.density = t.fogD;
+  renderer.toneMappingExposure = t.exp; bloom.enabled = t.bloom > 0; bloom.strength = t.bloom;
+  glowMats.forEach(m => { m.emissiveIntensity = t.glow; m.opacity = k === 'day' ? .32 : k === 'sunset' ? .55 : .85; }); if (poolMat) poolMat.emissiveIntensity = t.pool * .25; if (villageWin) villageWin.emissiveIntensity = k === 'night' ? 1.6 : k === 'sunset' ? .25 : 0;
+  applyLights(); updateUI();
+}
+function applyLights() { const t = TIMES[state.time], on = state.roomLights;
+  roomLights.forEach((l, i) => l.intensity = on ? t.room * (i ? .45 : 1) : 0); lampMats.forEach(m => m.emissiveIntensity = on || state.time !== 'day' ? t.lamp : .2);
+  loungeLights.forEach(l => l.intensity = t.lounge); gardenLights.forEach(l => l.intensity = t.garden); poolLights.forEach(l => l.intensity = t.pool * 6); }
+
+/* ---------- hotspots (facts from hortacadaques.com) ---------- */
+const TAGS = [
+  { id: 'pool', p: [0, 1.4, 7.5] }, { id: 'solarium', p: [14.2, 1.6, 7.5] }, { id: 'moreras', p: [-12.5, 7.4, 9.5] }, { id: 'chill', p: [-17.5, 4.1, -.5] },
+  { id: 'honesty', p: [7.6, 2.4, -13.5], view: 'bar' }, { id: 'breakfast', p: [-6.6, 2.4, -10.9], view: 'lounge' }, { id: 'parking', p: [23, 1.7, -26.6] }, { id: 'adults', p: [32.6, 2.6, -4.3] },
+  { id: 'house', p: [-3, 10.2, -13] }, { id: 'room', p: [5.75, 5.6, -6.9], cls: 'room' },
+];
+const INTERIOR = new Set(['lounge', 'bar', 'roomIn', 'balcony']);
+const tagBox = $('#tags');
+TAGS.forEach(t => { t.el = document.createElement('div'); t.el.className = 'tag' + (t.cls ? ' ' + t.cls : ''); t.el.onclick = () => openCard(t.id); tagBox.append(t.el); t.v = new THREE.Vector3(...t.p); });
+const pv = new THREE.Vector3();
+function placeTags() { const w = innerWidth, h = innerHeight, show = !tour.on && !INTERIOR.has(state.view) && !tw;
+  for (const t of TAGS) { pv.copy(t.v).project(camera); let vis = show && pv.z < 1 && Math.abs(pv.x) < 1.05 && Math.abs(pv.y) < 1.05 && camera.position.distanceTo(t.v) < 140;
+    if (state.view === 'room') vis = vis && t.id === 'room' ? false : vis && ['house'].includes(t.id) ? false : vis;
+    t.el.classList.toggle('far', !vis); if (vis) { t.el.style.left = ((pv.x + 1) / 2 * w).toFixed(1) + 'px'; t.el.style.top = ((1 - pv.y) / 2 * h - 14).toFixed(1) + 'px'; } } }
+function openCard(id) { const T = I[state.lang], c = T.cards[id], t = TAGS.find(x => x.id === id);
+  const act = id === 'room' ? `<button class="go" data-go="room">${T.roomBtn} →</button>` : t && t.view ? `<button class="go" data-go="${t.view}">${T.seeInside} →</button>` :
+    id === 'pool' ? `<button class="go" data-go="pool">${T.vPool} →</button>` : id === 'chill' ? `<button class="go" data-go="chill">${T.vChill} →</button>` : '';
+  $('#cardBody').innerHTML = `<p class="k">${c.k}</p><h3>${c.h}</h3>${c.b}${act}<p class="src">${T.src}</p>`; $('#card').classList.add('show'); stopTour(); }
+$('#cardBody').onclick = (e) => { const b = e.target.closest('[data-go]'); if (!b) return; $('#card').classList.remove('show'); go(b.dataset.go); };
+$('#cardX').onclick = () => $('#card').classList.remove('show');
+const closeVid = () => { $('#vidEl').pause(); $('#vid').classList.remove('show'); }; $('#vidX').onclick = closeVid; $('#vid').onclick = (e) => { if (e.target.id === 'vid') closeVid(); };
+
+/* ---------- camera ---------- */
+let tw = null; const tour = { on: false, t: 0, i: 0 };
+const TOUR = ['aerial', 'pool', 'chill', 'lounge', 'room', 'roomIn', 'balcony'];
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const ROOMV = new Set(['room', 'roomIn', 'balcony']);
+function viewPose(v) { const narrow = camera.aspect < .8;
+  switch (v) {
+    case 'pool': return narrow ? [V(10, 3.2, 18), V(-1.5, 1.6, 2)] : [V(9.5, 1.75, 14), V(-2.5, 2.4, 1.5)];
+    case 'chill': return narrow ? [V(-8, 2.4, 9.5), V(-18, 1, -1.2)] : [V(-9.2, 2.0, 7.6), V(-18.2, 1.2, -1.0)];
+    case 'lounge': return [V(1.1, 1.6, -8.9), V(-6.2, 1.25, -13.8)];
+    case 'bar': return [V(3.4, 1.6, -9.0), V(8.4, 1.2, -14)];
+    case 'room': return narrow ? [V(15, 19, 3), V(5.6, 3.6, -10.6)] : [V(13.5, 13.5, -1.5), V(5.6, 3.4, -10.9)];
+    case 'roomIn': return [V(7.3, 5.2, -8.95), V(5.2, 4.15, -12.7)];
+    case 'balcony': return [V(5.4, 5.25, -7.6), V(20, 1.5, 40)];
+    case 'night': return narrow ? [V(15, 8, 26), V(-1, 2, -3)] : [V(13.5, 4.6, 19), V(-2, 3.2, -4)];
+    default: return narrow ? [V(-50, 46, 66), V(2, 0, -6)] : [V(-38, 21, 40), V(3, 1.5, -8)];
+  } }
+function setDoll(open) { roofs.forEach(r => r.visible = !open); ceilRoom.forEach(c => c.visible = !open); }
+function go(v, dur = 2.2) {
+  if (v === 'night') { if (state.time !== 'night') setTime('night'); }
+  else if (v === 'pool' && state.view !== 'pool' && !tour.on) { if (state.time === 'night') setTime('day'); }
+  else if (v === 'chill' && !tour.on && state.time === 'day') setTime('sunset');
+  const from = state.view; state.view = v; const [p, t] = viewPose(v);
+  const inRoom = ROOMV.has(v), wasRoom = ROOMV.has(from);
+  if (inRoom && !state.roomLightsSet) { state.roomLights = true; applyLights(); }
+  // garden <-> room: fly through the opened roof (dollhouse), never through walls
+  const path = [];
+  if (inRoom && !wasRoom && v !== 'room') path.push(viewPose('room'));
+  if (!inRoom && wasRoom && from !== 'room') path.push(viewPose('room'));
+  if ((v === 'lounge' || v === 'bar') && !INTERIOR.has(from)) path.push([V(p.x * .4 + 1, 1.7, -3.5), V(p.x, 1.4, -11)]);
+  if (INTERIOR.has(from) && (from === 'lounge' || from === 'bar') && !(v === 'lounge' || v === 'bar')) path.push([V(1, 1.7, -3.5), V(1, 1.6, 4)]);
+  path.push([p, t]);
+  setDoll(inRoom || (wasRoom && from !== 'room'));
+  tw = { segs: path, i: 0, p0: camera.position.clone(), t0: controls.target.clone(), k: 0, dur: path.length > 1 ? dur * .75 : dur, done: () => setDoll(v === 'room') };
+  controls.minDistance = INTERIOR.has(v) ? .05 : .4; window.__indoor = INTERIOR.has(v); resize();
+  $('#roomCtl').classList.toggle('show', inRoom); $('#roomBtn').classList.toggle('on', inRoom); $('#roomTitle').classList.toggle('show', inRoom);
+  document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === (tour.on ? 'tour' : inRoom ? 'room' : v)));
+  document.querySelectorAll('#roomViews button').forEach(b => b.classList.toggle('on', b.dataset.v === v)); updateUI();
+}
+function stopTour() { if (tour.on) { tour.on = false; controls.autoRotate = false; document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === (ROOMV.has(state.view) ? 'room' : state.view))); } }
+canvas.addEventListener('pointerdown', () => { stopTour(); if (tw) { tw = null; setDoll(state.view === 'room'); } }); canvas.addEventListener('wheel', () => { stopTour(); tw = null; }, { passive: true });
+
+/* ---------- UI text (ES / EN) ---------- */
+const FACTS_ES = {
+  pool: { k: 'Exterior', h: 'Piscina de agua salada', b: '<p>Piscina de <b>agua salada</b> en el jardín del hotel, con solárium.</p><p>En la demo: piscina rectangular con borde de piedra gris y tumbonas blancas, como en sus fotos.</p>' },
+  solarium: { k: 'Exterior', h: 'Solárium', b: '<p>Solárium junto a la piscina de agua salada.</p><p>En la demo: tarima de madera con tumbonas.</p>' },
+  moreras: { k: 'Jardín', h: 'A la sombra de las moreras', b: '<p>Sombra bajo las <b>moreras</b> del jardín. <i>Horta</i>, en catalán, es el huerto: el jardín de la antigua casa.</p>' },
+  chill: { k: 'Exterior', h: 'Chill-out', b: '<p>Zona chill-out en el jardín.</p><p>En la demo: pérgola con plantas trepadoras y sofás de ratán con cojines blancos, como en sus fotos.</p>' },
+  honesty: { k: 'Servicio', h: 'Honesty bar', b: '<p>Bar de confianza (<i>honesty bar</i>) en la casa, junto a la recepción.</p>' },
+  breakfast: { k: 'Servicio', h: 'Desayuno casero', b: '<p>Desayuno <b>casero y natural</b>.</p><p>En la demo: el salón de arcos blancos, con el bufé en estanterías de madera rústica, mesas de madera y prensa.</p>' },
+  parking: { k: 'Servicio', h: 'Parking + carga eléctrica', b: '<p><b>Parking en el hotel</b> con punto de carga para coche eléctrico.</p><p>Posición y número de plazas: estimación.</p>' },
+  adults: { k: 'Hotel', h: 'Solo adultos · 16+', b: '<p>Hotel <b>solo para adultos</b> (a partir de 16 años): tranquilo, para descansar.</p>' },
+  house: { k: 'Sa Tarongeta 1 · 17488 Cadaqués', h: 'La casa de los Rahola', b: '<p>La <b>antigua casa de la familia Rahola</b> en Cadaqués, reformada como un pequeño hotel tranquilo, con encanto y un diseño moderno y confortable. Trato cercano y personal.</p><ul><li>Recepción</li><li>Honesty bar</li><li>Desayuno casero y natural</li><li>Lavandería</li><li>Wifi gratis</li><li>Parking con carga eléctrica</li></ul>' },
+  room: { k: 'Orientativa', h: 'Habitación tipo', b: '<p>Paredes blancas, cabecero y muebles de madera clara y un pequeño balcón con barandilla de hierro y vistas a las casas blancas de Cadaqués, como en sus fotos.</p><p>El número y los tipos de habitación no se publican en su web (se reserva con su motor de reservas): esta es una <b>habitación tipo</b> aproximada.</p>' },
+};
+const FACTS_EN = {
+  pool: { k: 'Outdoors', h: 'Saltwater pool', b: '<p><b>Saltwater pool</b> in the hotel garden, with a solarium.</p><p>In the demo: rectangular pool with a grey stone edge and white loungers, as in their photos.</p>' },
+  solarium: { k: 'Outdoors', h: 'Solarium', b: '<p>Solarium next to the saltwater pool.</p><p>In the demo: wooden deck with loungers.</p>' },
+  moreras: { k: 'Garden', h: 'In the shade of the mulberries', b: '<p>Shade under the garden\'s <b>mulberry trees</b>. <i>Horta</i> is Catalan for the kitchen garden of the old house.</p>' },
+  chill: { k: 'Outdoors', h: 'Chill-out', b: '<p>Chill-out area in the garden.</p><p>In the demo: a pergola with climbing plants over rattan sofas with white cushions, as in their photos.</p>' },
+  honesty: { k: 'Service', h: 'Honesty bar', b: '<p>An <i>honesty bar</i> in the house, next to reception.</p>' },
+  breakfast: { k: 'Service', h: 'Homemade breakfast', b: '<p><b>Homemade, natural</b> breakfast.</p><p>In the demo: the white-arched lounge, with the buffet on rustic wooden shelves, wooden tables and newspapers.</p>' },
+  parking: { k: 'Service', h: 'Parking + EV charging', b: '<p><b>On-site parking</b> with an electric-car charging point.</p><p>Position and number of spaces: estimated.</p>' },
+  adults: { k: 'Hotel', h: 'Adults only · 16+', b: '<p><b>Adults-only</b> hotel (16 and over): quiet, made for resting.</p>' },
+  house: { k: 'Sa Tarongeta 1 · 17488 Cadaqués', h: 'The Rahola family house', b: '<p>The <b>old Rahola family house</b> in Cadaqués, renovated into a small, quiet hotel with charm and a modern, comfortable design. Close, personal service.</p><ul><li>Reception</li><li>Honesty bar</li><li>Homemade natural breakfast</li><li>Laundry</li><li>Free wifi</li><li>Parking with EV charging</li></ul>' },
+  room: { k: 'Indicative', h: 'Sample room', b: '<p>White walls, light-wood headboard and furniture and a small balcony with an iron railing, looking over the white houses of Cadaqués, as in their photos.</p><p>The number and types of rooms are not listed on their site (booking goes through their booking engine): this is an approximate <b>sample room</b>.</p>' },
+};
+const CHIPS = ['pool', 'solarium', 'moreras', 'chill', 'honesty', 'breakfast', 'parking', 'adults'];
+const I = {
+  es: { loading: 'Preparando el jardín…', sub: 'Cadaqués · Tour 3D', intro: 'La antigua casa de la familia Rahola, reformada como un pequeño hotel tranquilo y con encanto. Recorre el jardín y toca las etiquetas.', hRoom: 'Habitación tipo', roomBtn: 'Ver habitación', rDoll: 'Maqueta', rIn: 'Dentro', rBalc: 'Balcón', lightsOn: 'Luces encendidas', lightsOff: 'Apagadas',
+    hTime: 'Luz', day: 'Día', sunset: 'Atardecer', night: 'Noche', hServ: 'En el hotel', note: 'Demo orientativa creada por Yahya a partir de la información pública del Hotel Horta d\'en Rahola. Distribución, medidas y número de habitaciones aproximados; el pueblo del fondo es una recreación simplificada.',
+    cta: 'Hablemos de esta demo', book: 'Reservar en su web ↗', credit: 'Modelo 3D no oficial · texturas y HDRI CC0 (Poly Haven)', roomTitle: 'Habitación tipo · orientativa', backGarden: '← Jardín', seeInside: 'Ver por dentro',
+    vAerial: 'Jardín', vPool: 'Piscina', vChill: 'Chill-out', vLounge: 'Salón', vRoom: 'Habitación', vNight: 'Noche', vTour: '▶ Tour', vVideo: '▶ Vídeo', hint: 'Arrastra para girar · rueda para acercar · toca las etiquetas',
+    tag: { pool: 'Piscina de agua salada', solarium: 'Solárium', moreras: 'Moreras', chill: 'Chill-out', honesty: 'Honesty bar', breakfast: 'Desayuno', parking: 'Parking + carga eléctrica', adults: 'Solo adultos 16+', house: 'Casa Rahola', room: 'Ver habitación' },
+    cards: FACTS_ES, src: 'Datos: hortacadaques.com. Volúmenes, medidas y posiciones en 3D: estimación.', mailS: 'Demo 3D Hotel Horta d\'en Rahola', mailB: 'Hola Yahya,\n\nHe visto la demo 3D del Hotel Horta d\'en Rahola y me gustaría hablar de ella.\n\n' },
+  en: { loading: 'Preparing the garden…', sub: 'Cadaqués · 3D tour', intro: 'The old Rahola family house, renovated into a small, quiet hotel with charm. Explore the garden and tap the labels.', hRoom: 'Sample room', roomBtn: 'See the room', rDoll: 'Dollhouse', rIn: 'Inside', rBalc: 'Balcony', lightsOn: 'Lights on', lightsOff: 'Off',
+    hTime: 'Light', day: 'Day', sunset: 'Sunset', night: 'Night', hServ: 'At the hotel', note: 'Indicative demo made by Yahya from Hotel Horta d\'en Rahola\'s public information. Layout, sizes and number of rooms are approximate; the village in the background is a simplified recreation.',
+    cta: 'Let\'s talk about this demo', book: 'Book on their website ↗', credit: 'Unofficial 3D model · CC0 textures and HDRIs (Poly Haven)', roomTitle: 'Sample room · indicative', backGarden: '← Garden', seeInside: 'Look inside',
+    vAerial: 'Garden', vPool: 'Pool', vChill: 'Chill-out', vLounge: 'Lounge', vRoom: 'Room', vNight: 'Night', vTour: '▶ Tour', vVideo: '▶ Video', hint: 'Drag to orbit · scroll to zoom · tap the labels',
+    tag: { pool: 'Saltwater pool', solarium: 'Solarium', moreras: 'Mulberry trees', chill: 'Chill-out', honesty: 'Honesty bar', breakfast: 'Breakfast', parking: 'Parking + EV charging', adults: 'Adults only 16+', house: 'Rahola house', room: 'See the room' },
+    cards: FACTS_EN, src: 'Facts: hortacadaques.com. 3D volumes, sizes and positions: estimated.', mailS: 'Hotel Horta d\'en Rahola 3D demo', mailB: 'Hi Yahya,\n\nI have seen the Hotel Horta d\'en Rahola 3D demo and would like to talk about it.\n\n' },
+};
+const state = { time: 'day', view: 'aerial', lang: 'es', roomLights: false, roomLightsSet: false };
+function updateUI() { const T = I[state.lang];
+  document.documentElement.lang = state.lang; $('#lang').textContent = state.lang === 'es' ? 'EN' : 'ES';
+  document.querySelectorAll('[data-i]').forEach(e => { if (typeof T[e.dataset.i] === 'string') e.textContent = T[e.dataset.i]; });
+  $('#roomBtn').innerHTML = `<span>${ROOMV.has(state.view) ? T.backGarden : T.roomBtn + ' →'}</span>`;
+  $('#time').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === state.time));
+  $('#roomLights').querySelectorAll('button').forEach(b => b.classList.toggle('on', (b.dataset.v === '1') === state.roomLights));
+  $('#chips').innerHTML = CHIPS.map(k => `<span data-c="${k}"><b>•</b>${T.tag[k]}</span>`).join('');
+  TAGS.forEach(t => t.el.textContent = T.tag[t.id]);
+  $('#cta').href = 'mailto:' + CONTACT + '?subject=' + encodeURIComponent(T.mailS) + '&body=' + encodeURIComponent(T.mailB);
+}
+$('#chips').onclick = (e) => { const c = e.target.closest('[data-c]'); if (c) { if (ROOMV.has(state.view) || INTERIOR.has(state.view)) go('aerial'); openCard(c.dataset.c); } };
+$('#time').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; setTime(b.dataset.v); };
+$('#roomBtn').onclick = () => { stopTour(); $('#card').classList.remove('show'); go(ROOMV.has(state.view) ? 'aerial' : 'room'); updateUI(); };
+$('#backGarden').onclick = () => { stopTour(); go('aerial'); updateUI(); };
+$('#roomViews').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; stopTour(); go(b.dataset.v); updateUI(); };
+$('#roomLights').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; state.roomLights = b.dataset.v === '1'; state.roomLightsSet = true; applyLights(); updateUI(); };
+$('#views').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; $('#card').classList.remove('show');
+  if (b.dataset.v === 'video') { stopTour(); const v = $('#vidEl'); if (!v.src) v.src = 'video/demo.mp4'; $('#vid').classList.add('show'); v.play().catch(() => {}); return; }
+  if (b.dataset.v === 'tour') { tour.on = true; tour.i = 0; tour.t = 0; go(TOUR[0], 2.5); } else { stopTour(); go(b.dataset.v); } updateUI(); };
+$('#lang').onclick = () => { state.lang = state.lang === 'es' ? 'en' : 'es'; updateUI(); $('#card').classList.remove('show'); };
+
+/* ---------- go ---------- */
+const qp = new URLSearchParams(location.search);
+for (const k of ['time', 'view', 'lang']) if (qp.get(k)) state[k] = qp.get(k);
+if (!TIMES[state.time]) state.time = 'day'; if (!I[state.lang]) state.lang = 'es';
+const startView = state.view; state.view = 'aerial';
+updateUI(); await setTime(state.time); go(startView, qp.has('view') ? .01 : 3.4);
+const clock = new THREE.Clock(); let first = true;
+const ease = (k) => k < .5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2;
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), .1), el = clock.elapsedTime;
+  if (tw) { const s = tw.segs[tw.i], n = tw.segs.length; tw.k = Math.min(1, tw.k + dt / tw.dur); const k = tw.k;
+    const e = n === 1 ? ease(k) : tw.i === 0 ? k * k : tw.i === n - 1 ? 1 - (1 - k) ** 2 : k;
+    camera.position.lerpVectors(tw.p0, s[0], e); controls.target.lerpVectors(tw.t0, s[1], e);
+    if (k >= 1) { if (tw.i < n - 1) { tw.i++; tw.k = 0; tw.p0 = camera.position.clone(); tw.t0 = controls.target.clone(); } else { const d = tw.done; tw = null; d && d(); } } }
+  if (tour.on) { tour.t += dt; if (tour.t > 7.5) { tour.t = 0; tour.i = (tour.i + 1) % TOUR.length; go(TOUR[tour.i], 3); updateUI(); } }
+  if (waterN) { waterN.offset.set(el * .012, el * .008); }
+  controls.update(); if (!INTERIOR.has(state.view) && !ROOMV.has(state.view) && camera.position.y < .6) camera.position.y = .6;
+  composer.render(); placeTags();
+  if (first) { first = false; $('#loader').classList.add('done'); }
+});
+window.__tour = { state, go, setTime, camera, controls, THREE, scene, composer, renderer, viewPose, updateUI, tour, setDoll };
+</script>
+</body>
+</html>

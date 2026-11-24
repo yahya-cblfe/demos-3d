@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mas Gelabert · Tour 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#f4efe4;--mute:#c9c2b0;--panel:rgba(28,32,24,.72);--line:rgba(244,239,228,.16);--gold:#d9b46a;--gold-ink:#221a08}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#10140f;color:var(--ink);font-family:Inter,system-ui,sans-serif;overflow:hidden}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;touch-action:none}
+#loader{position:fixed;inset:0;display:grid;place-items:center;background:#10140f;z-index:9;transition:opacity .8s}
+#loader.done{opacity:0;pointer-events:none}
+#loader div{font:600 30px "Cormorant Garamond",serif;letter-spacing:.08em}
+#loader small{display:block;font:400 12px Inter;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);margin-top:8px;text-align:center}
+.panel{position:fixed;left:16px;top:16px;bottom:16px;width:316px;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:14px;padding:20px 18px;overflow:auto;z-index:3;scrollbar-width:thin}
+.brand{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+h1{font:600 30px/1 "Cormorant Garamond",serif;margin:0;letter-spacing:.02em}
+.sub{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mute);margin:6px 0 0}
+.lang{background:none;border:1px solid var(--line);color:var(--mute);border-radius:99px;font:500 11px Inter;padding:5px 9px;cursor:pointer}
+.lang:hover{color:var(--ink)}
+h2{font:600 11px Inter;letter-spacing:.16em;text-transform:uppercase;color:var(--mute);margin:20px 0 9px}
+.guests{display:flex;align-items:baseline;gap:8px}
+.guests b{font:600 44px/1 "Cormorant Garamond",serif;font-variant-numeric:tabular-nums}
+.guests span{color:var(--mute);font-size:13px}
+input[type=range]{width:100%;accent-color:var(--gold);margin:8px 0 0}
+.ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--mute);font-variant-numeric:tabular-nums}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+.seg button,.views button{background:rgba(244,239,228,.06);border:1px solid var(--line);color:var(--ink);border-radius:9px;padding:9px 6px;font:500 12.5px Inter;cursor:pointer;transition:.15s}
+.seg button small{display:block;font-size:10px;color:var(--mute);margin-top:2px;font-weight:400}
+.seg button:hover,.views button:hover{background:rgba(244,239,228,.13)}
+.seg button.on,.views button.on{background:var(--gold);border-color:var(--gold);color:var(--gold-ink)}
+.seg button.on small{color:#5a4514}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+.sw{display:flex;gap:9px}
+.sw button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;outline:1px solid var(--line);cursor:pointer;padding:0}
+.sw button.on{border-color:var(--ink)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:18px}
+.stats div{border:1px solid var(--line);border-radius:10px;padding:10px 11px}
+.stats b{display:block;font:600 24px/1.05 "Cormorant Garamond",serif;font-variant-numeric:tabular-nums}
+.stats span{font-size:10.5px;color:var(--mute);letter-spacing:.04em}
+.note{font-size:11.5px;line-height:1.5;color:var(--mute);margin:12px 0 0}
+.cta{display:block;margin-top:16px;text-align:center;background:var(--ink);color:#1b1f16;text-decoration:none;font:600 13px Inter;padding:12px;border-radius:10px}
+.cta:hover{background:#fff}
+.views{position:fixed;left:348px;right:16px;bottom:16px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;z-index:3}
+.views button{background:var(--panel);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:9px 13px;border-radius:99px}
+.hint{position:fixed;right:16px;top:16px;font-size:11px;color:var(--ink);background:var(--panel);border:1px solid var(--line);padding:7px 11px;border-radius:99px;z-index:3;backdrop-filter:blur(12px)}
+@media (max-width:760px){
+ .panel{left:8px;right:8px;top:auto;bottom:8px;width:auto;max-height:44vh;padding:14px}
+ .views{left:8px;right:8px;top:8px;bottom:auto;justify-content:flex-start;flex-wrap:nowrap;overflow-x:auto}
+ .views button{white-space:nowrap;padding:8px 11px}
+ .hint{display:none} h1{font-size:24px} .guests b{font-size:34px}
+}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="loader"><div>Mas Gelabert<small data-i="loading">Preparando la finca…</small></div></div>
+<canvas id="c"></canvas>
+
+<aside class="panel">
+  <div class="brand">
+    <div><h1>Mas Gelabert</h1><p class="sub" data-i="sub">Pals · Costa Brava · Tour 3D</p></div>
+    <button class="lang" id="lang">EN</button>
+  </div>
+
+  <h2 data-i="hGuests">Invitados</h2>
+  <div class="guests"><b id="gN">180</b><span data-i="guestsUnit">personas</span></div>
+  <input type="range" id="guests" min="80" max="600" step="10" value="180">
+  <div class="ticks"><span>80</span><span>250</span><span>400</span><span>600</span></div>
+
+  <h2 data-i="hSpace">Espacio</h2>
+  <div class="seg" id="space">
+    <button data-v="porche"><span data-i="porche">Porche</span><small>≤ 120</small></button>
+    <button data-v="jaima" class="on"><span data-i="jaima">Jaima</span><small>≤ 250</small></button>
+    <button data-v="jardin"><span data-i="jardin">Jardín</span><small>≤ 600</small></button>
+  </div>
+
+  <h2 data-i="hStyle">Montaje</h2>
+  <div class="seg" id="style">
+    <button data-v="round" class="on" data-i="round">Redondas</button>
+    <button data-v="imperial" data-i="imperial">Imperiales</button>
+    <button data-v="cocktail" data-i="cocktail">Cóctel</button>
+  </div>
+
+  <h2 data-i="hLinen">Mantelería</h2>
+  <div class="sw" id="linen"></div>
+
+  <h2 data-i="hTime">Luz</h2>
+  <div class="seg" id="time">
+    <button data-v="day" data-i="day">Día</button>
+    <button data-v="sunset" class="on" data-i="sunset">Atardecer</button>
+    <button data-v="night" data-i="night">Noche</button>
+  </div>
+
+  <div class="stats">
+    <div><b id="sTables">18</b><span id="sTablesL">mesas</span></div>
+    <div><b id="sSeats">10</b><span data-i="perTable">por mesa</span></div>
+    <div><b id="sArea">—</b><span data-i="area">m² de montaje</span></div>
+    <div><b id="sCer">180</b><span data-i="cerSeats">sillas ceremonia</span></div>
+  </div>
+  <p class="note" data-i="note">Montaje orientativo. Aforos de jaima y jardín según la ficha de la finca; el del porche es una estimación.</p>
+  <a class="cta" id="cta" href="#" data-i="cta">Solicitar presupuesto con este montaje</a>
+</aside>
+
+<nav class="views" id="views">
+  <button data-v="aerial" class="on" data-i="vAerial">Vista aérea</button>
+  <button data-v="masia" data-i="vMasia">La masía</button>
+  <button data-v="banquet" data-i="vBanquet">Banquete</button>
+  <button data-v="ceremony" data-i="vCeremony">Ceremonia</button>
+  <button data-v="chill" data-i="vChill">Chill-out</button>
+  <button data-v="teules" data-i="vTeules">Les Teules</button>
+  <button data-v="plan" data-i="vPlan">Plano de mesas</button>
+  <button data-v="tour" data-i="vTour">▶ Tour</button>
+</nav>
+<div class="hint" data-i="hint">Arrastra para girar · rueda para acercar</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+/* ---------- basics ---------- */
+let seed = 7; const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const R = (a, b) => a + rnd() * (b - a);
+const canvas = document.getElementById('c');
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); }
+catch (e) { document.querySelector('#loader small').textContent = 'Este navegador no tiene WebGL activo · WebGL is not available in this browser'; throw e; }
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0xc9dcec, 0.0009);
+const camera = new THREE.PerspectiveCamera(46, 1, 0.3, 4000);
+camera.position.set(95, 60, 80);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true; controls.dampingFactor = .07; controls.maxPolarAngle = Math.PI * .492;
+controls.minDistance = 2; controls.maxDistance = 260; controls.target.set(0, 2, -14);
+
+const rt = new THREE.WebGLRenderTarget(2, 2, { type: THREE.HalfFloatType, samples: 4 });
+const composer = new EffectComposer(renderer, rt);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(2, 2), .4, .7, 1.0); composer.addPass(bloom);
+composer.addPass(new OutputPass());
+function resize() { const w = innerWidth, h = innerHeight; renderer.setSize(w, h, false); composer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+
+/* ---------- assets built in Blender (see blender/build.py) ---------- */
+const AS = 'assets/', tl = new THREE.TextureLoader(), gltf = new GLTFLoader(), rgbe = new RGBELoader();
+const ANISO = renderer.capabilities.getMaxAnisotropy();
+function ptex(id, kind, rx, ry) { const t = tl.load(`${AS}tex/${id}_${kind}.jpg`); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(rx, ry); t.anisotropy = ANISO; if (kind === 'diff') t.colorSpace = THREE.SRGBColorSpace; return t; }
+function pbr(id, rx, ry, o = {}) { const arm = ptex(id, 'arm', rx, ry); return new THREE.MeshStandardMaterial({ map: ptex(id, 'diff', rx, ry), normalMap: ptex(id, 'nor_gl', rx, ry), roughnessMap: arm, metalnessMap: arm, aoMap: arm, metalness: 1, roughness: 1, ...o }); }
+function tex(size, draw) { const c = document.createElement('canvas'); c.width = c.height = size; draw(c.getContext('2d'), size); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }
+const [venue, propsFile, TREES] = await Promise.all([gltf.loadAsync(AS + 'venue.glb'), gltf.loadAsync(AS + 'props.glb'), fetch(AS + 'trees.json').then(r => r.json())]);
+const prop = (n) => propsFile.scene.getObjectByName(n).geometry;
+
+/* ---------- materials ---------- */
+const S = (o) => new THREE.MeshStandardMaterial(o);
+const linenN = ptex('rough_linen', 'nor_gl', 2, 2);
+const woodMat = pbr('weathered_brown_planks', 1, 1, { color: 0xc0a082 }), woodDark = woodMat;
+const whiteMat = S({ color: 0xf3f0e8, roughness: .45 }), ivoryMat = S({ color: 0xf0e8d6, roughness: .9, normalMap: linenN });
+const leafMat = S({ color: 0x3d5c31, roughness: .8 }), flowerMat = S({ color: 0xf6f0e6, roughness: .7 }), cypressMat = S({ color: 0x2b4430, roughness: .95 });
+const clothMat = S({ color: 0x9fc3df, roughness: .92, normalMap: linenN, normalScale: new THREE.Vector2(.6, .6) });
+const plateMat = S({ color: 0xffffff, roughness: .18 });
+const glassMat = S({ color: 0xffffff, roughness: .03, transparent: true, opacity: .32, envMapIntensity: 2.5, depthWrite: false });
+const tentMat = S({ color: 0xeadfc8, roughness: .95, side: THREE.DoubleSide, emissive: 0xffb060, emissiveIntensity: 0, normalMap: ptex('rough_linen', 'nor_gl', 60, 40), normalScale: new THREE.Vector2(.3, .3) });
+const bulbMat = new THREE.MeshBasicMaterial({ color: 0xffffff }), flameMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+const wireMat = new THREE.LineBasicMaterial({ color: 0x1a1a1a });
+
+/* ---------- helpers ---------- */
+const unit = new THREE.BoxGeometry(1, 1, 1);
+function add(geo, mat, x, y, z, parent = scene) { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.castShadow = m.receiveShadow = true; parent.add(m); return m; }
+const Mx = (x, y, z, ry = 0, sx = 1, sy = 1, sz = 1) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), new THREE.Vector3(sx, sy, sz));
+function inst(geo, mat, ms, parent, cast = true) { if (!ms.length) return null; const m = new THREE.InstancedMesh(geo, mat, ms.length); ms.forEach((x, i) => m.setMatrixAt(i, x)); m.castShadow = cast; m.receiveShadow = true; m.frustumCulled = false; parent.add(m); return m; }
+function ground(mat, w, d, x, z, y = .04) { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, d).rotateX(-Math.PI / 2), mat); m.position.set(x, y, z); m.receiveShadow = true; mat.polygonOffset = true; mat.polygonOffsetFactor = -2; mat.polygonOffsetUnits = -2; scene.add(m); return m; }
+
+/* ---------- terrain ---------- */
+{
+  const g = new THREE.PlaneGeometry(440, 440, 88, 88).rotateX(-Math.PI / 2), p = g.attributes.position, col = [];
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); const n = .9 + .1 * Math.sin(x * .05 + 1) * Math.cos(z * .04) + .06 * Math.sin(x * .17 + z * .13), d = .5 + .5 * Math.sin(x * .031 - z * .043 + 2) * Math.sin(z * .021); col.push(n * (1 + .14 * d), n, n * (.95 - .1 * d)); }
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const lawn = new THREE.Mesh(g, pbr('leafy_grass', 220, 220, { color: 0x9fd070, vertexColors: true })); lawn.receiveShadow = true; scene.add(lawn);
+  const base = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000).rotateX(-Math.PI / 2), S({ color: 0x6d6f48, roughness: 1 })); base.position.y = -.15; scene.add(base);
+  const ms = [], cs = []; const ca = new THREE.Color(0x7a9a44), cb = new THREE.Color(0x4f7458);   // rice paddies of the Baix Empordà plain
+  for (let x = -900; x <= 900; x += 74) for (let z = -900; z <= 900; z += 48) { if (Math.abs(x) < 240 && Math.abs(z) < 240) continue; ms.push(Mx(x + R(-2, 2), -.05, z, 0, 70, 1, 44)); cs.push(ca.clone().lerp(cb, rnd())); }
+  const pm = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), S({ roughness: .45, envMapIntensity: .9 }), ms.length);
+  ms.forEach((m, i) => { pm.setMatrixAt(i, m); pm.setColorAt(i, cs[i]); }); pm.frustumCulled = false; scene.add(pm);
+  const hm = S({ color: 0x6f8296, roughness: 1 });
+  for (let i = 0; i < 22; i++) { const a = i / 22 * Math.PI * 2 + R(-.1, .1), d = R(1300, 1700); const h = (a > 3.6 && a < 5.4 ? R(90, 150) : R(30, 70)); const m = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), hm); m.scale.set(R(380, 620), h, R(240, 380)); m.position.set(Math.sin(a) * d, -5, Math.cos(a) * d); m.rotation.y = a; scene.add(m); }
+  ground(pbr('gravelly_sand', 92 / 2.48, 12 / 2.48), 92, 12, 0, -35);
+  ground(pbr('gravelly_sand', 3.2 / 2.48, 62 / 2.48), 3.2, 62, -41, 0);
+  ground(pbr('gravelly_sand', 16 / 2.48, 3.2 / 2.48), 16, 3.2, -49, 30.5);
+}
+
+/* ---------- venue: masía, porch, Les Teules, bar, stage, chill-out, arch (modelled in Blender) ---------- */
+const roofs = [], glowMats = new Set(), lampMats = new Set(), stageMats = [];   // roofs are hidden in plan view
+const FRONT = -39, CER = { x: -52, z: 31 };
+venue.scene.traverse(o => { if (!o.isMesh) return; o.castShadow = o.receiveShadow = true; if (o.name.startsWith('ROOF_')) roofs.push(o);
+  for (const m of [].concat(o.material)) { if (m.map) m.map.anisotropy = ANISO;
+    if (m.name === 'Glass') { m.emissive.set(0xffb866); m.roughness = .08; m.envMapIntensity = 1.5; glowMats.add(m); }
+    if (m.name === 'Lamp') lampMats.add(m);
+    if (m.name.startsWith('StageLamp') && !stageMats.includes(m)) { m.userData.c = m.emissive.clone(); stageMats.push(m); }
+    if (/leaves|twigs/.test(m.name)) { m.transparent = false; m.alphaTest = .45; m.side = THREE.DoubleSide; } } });
+scene.add(venue.scene);
+
+/* ---------- trees: billboards rendered in Blender from scanned models, cypresses instanced ---------- */
+{
+  for (const [name, sp] of Object.entries(TREES.species)) {
+    const list = TREES.trees.filter(t => t.s === name); if (!list.length) continue;
+    const side = tl.load(`${AS}trees/${name}_side.png`), top = tl.load(`${AS}trees/${name}_top.png`); side.colorSpace = top.colorSpace = THREE.SRGBColorSpace; side.anisotropy = top.anisotropy = ANISO;
+    const q = sp.q, pos = [], uv = [], idx = [];
+    for (const [ang, flip] of [[0, 1], [0, -1], [Math.PI / 2, 1], [Math.PI / 2, -1]]) { const c = Math.cos(ang), s = Math.sin(ang), b = pos.length / 3, ox = -sp.ox / sp.h;
+      for (const [u, v] of [[0, 0], [1, 0], [1, 1], [0, 1]]) { const lx = (u - .5) * q * flip + ox * flip; pos.push(lx * c, v * q, lx * s); uv.push(u, v); }
+      idx.push(b, b + 1, b + 2, b, b + 2, b + 3); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(pos.map((_, i) => i % 3 === 1 ? 1 : 0), 3)); g.setIndex(idx);
+    const tg = new THREE.PlaneGeometry(sp.tq, sp.tq).rotateX(-Math.PI / 2).translate(0, .7, 0);
+    const o = { alphaTest: .4, roughness: 1, color: new THREE.Color(1.9, 2, 1.65) };
+    const ms = list.map(t => Mx(t.x, 0, t.z, t.r, t.h, t.h, t.h));
+    inst(g, S({ map: side, ...o }), ms, scene); const tm = inst(tg, S({ map: top, side: THREE.DoubleSide, ...o }), ms, scene, false); tm.receiveShadow = false;
+  }
+  inst(prop('Cypress'), cypressMat, TREES.cypress.map(c => Mx(c.x, 0, c.z, 0, c.h * c.w, c.h, c.h * c.w)), scene);
+}
+
+/* ---------- lights & sky ---------- */
+const sun = new THREE.DirectionalLight(0xffffff, 3); sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096);
+Object.assign(sun.shadow.camera, { left: -95, right: 95, top: 95, bottom: -95, near: 10, far: 500 }); sun.shadow.bias = -.0004; sun.shadow.normalBias = .06; scene.add(sun, sun.target);
+const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x6b7a45, 1); scene.add(hemi);
+const zoneLights = [...Array(5)].map(() => { const l = new THREE.PointLight(0xffb469, 0, 34, 1.7); scene.add(l); return l; });
+const fixedLights = [[0, 3.2, FRONT + 3.5], [16, 2.6, -35.5], [32, 4, -34], [52, 2.6, -5], [-25.5, 3.1, -46.5]].map(p => { const l = new THREE.PointLight(0xffb469, 0, 26, 1.7); l.position.set(...p); scene.add(l); return l; });
+const SKIES = { day: ['kloofendal_48d_partly_cloudy_puresky', .5951], sunset: ['belfast_sunset_puresky', .6049], night: ['qwantani_night_puresky', .783] }, skyCache = {};
+function loadSky(k) { if (!skyCache[k]) { const [f] = SKIES[k]; skyCache[k] = Promise.all([rgbe.loadAsync(`${AS}hdri/${f}.hdr`), rgbe.loadAsync(`${AS}hdri/${f}_env.hdr`)]).then(([bg, env]) => { bg.mapping = env.mapping = THREE.EquirectangularReflectionMapping; return { bg, env }; }); } return skyCache[k]; }
+const TIMES = {
+  day:    { el: 48, az: -38, exp: .8, sunC: 0xfff1da, sunI: 4.2, hemiI: .5, sky: 0xbfd8ff, gnd: 0x6b7a45, env: .7, bgI: .8, fog: 0xbfd2e4, bulb: [1, .92, .7], pl: 0, bloom: 0, glow: 0, tent: 0 },
+  sunset: { el: 8, az: -58, exp: .7, sunC: 0xffa25c, sunI: 3, hemiI: .2, sky: 0xffc9a8, gnd: 0x4b4a36, env: .6, bgI: .9, fog: 0xd9bfb4, bulb: [5, 3.3, 1.5], pl: 26, bloom: .3, glow: 1.2, tent: .12 },
+  night:  { el: 55, az: 30, exp: .95, sunC: 0x93a8d6, sunI: .4, hemiI: .12, sky: 0x2a3558, gnd: 0x10140c, env: .035, bgI: .03, fog: 0x070b18, bulb: [7, 4.6, 2], pl: 55, bloom: .5, glow: 1.1, tent: .38 }
+};
+let timeReq = 0;
+async function setTime(k) {
+  const t = TIMES[k], night = k === 'night', req = ++timeReq, { bg, env } = await loadSky(k); if (req !== timeReq) return;
+  const az = THREE.MathUtils.degToRad(t.az), dir = new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(90 - t.el), az);
+  const rot = (SKIES[k][1] - .5) * Math.PI * 2 - (Math.PI / 2 - az);        // turn the HDRI so its sun sits where the shadow-casting light is
+  scene.background = bg; scene.environment = env; scene.backgroundRotation.y = scene.environmentRotation.y = rot; scene.backgroundIntensity = t.bgI; scene.environmentIntensity = t.env;
+  sun.position.copy(dir).multiplyScalar(200); sun.color.set(t.sunC); sun.intensity = t.sunI;
+  hemi.color.set(t.sky); hemi.groundColor.set(t.gnd); hemi.intensity = t.hemiI; scene.fog.color.set(t.fog); scene.fog.density = night ? .0016 : .0009;
+  renderer.toneMappingExposure = t.exp; bloom.enabled = t.bloom > 0; bloom.strength = t.bloom;
+  bulbMat.color.setRGB(...t.bulb); flameMat.color.setRGB(t.bulb[0] * .8, t.bulb[1] * .7, t.bulb[2] * .5);
+  glowMats.forEach(m => m.emissiveIntensity = t.glow); lampMats.forEach(m => m.emissiveIntensity = 1 + t.glow * 3); tentMat.emissiveIntensity = t.tent;
+  zoneLights.forEach(l => l.intensity = t.pl); fixedLights.forEach(l => l.intensity = t.pl * .8);
+  stageMats.forEach(m => { m.emissive.copy(m.userData.c); m.emissiveIntensity = t.pl ? 5 : .6; });
+}
+
+/* ---------- festoon lights ---------- */
+const bulbGeo = new THREE.SphereGeometry(.055, 8, 6);
+function festoon(a, b, sag, bulbs, wire, step = .65) { const n = Math.max(2, Math.ceil(a.distanceTo(b) / step)); let prev = null;
+  for (let i = 0; i <= n; i++) { const t = i / n, p = a.clone().lerp(b, t); p.y -= sag * 4 * t * (1 - t); if (prev) wire.push(prev.x, prev.y, prev.z, p.x, p.y, p.z); if (i && i < n) bulbs.push(Mx(p.x, p.y - .07, p.z)); prev = p; } }
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const staticBulbs = [], staticWire = [];
+for (let i = 0; i < 6; i++) festoon(V(-40 + i * 4.83, 3.35, -41.6), V(-40 + (i + 1) * 4.83, 3.35, -41.6), .35, staticBulbs, staticWire);
+for (let i = 0; i < 6; i++) festoon(V(-39 + i * 4.83, 4.5, -51.4), V(-39 + (i + 1) * 4.83 - 2.4, 3.5, -42), .3, staticBulbs, staticWire);
+festoon(V(12.8, 2.9, -34.8), V(19.2, 2.9, -34.8), .25, staticBulbs, staticWire); festoon(V(11.2, 3.5, -41.9), V(28.2, 5.1, -37.6), .9, staticBulbs, staticWire); festoon(V(38.8, 3.5, -41.9), V(35.8, 5.1, -37.6), .3, staticBulbs, staticWire);
+festoon(V(45, 3.2, -11.5), V(59.5, 3.2, -11.5), .5, staticBulbs, staticWire); festoon(V(59.5, 3.2, -11.5), V(59.5, 3.2, 2.5), .5, staticBulbs, staticWire); festoon(V(45, 3.2, -11.5), V(45, 3.2, 2.5), .5, staticBulbs, staticWire);
+
+/* ---------- stretch tent (jaima, up to 250) ---------- */
+const TENT = { W: 38, D: 26, kings: [-11, 0, 11] };
+const tentH = (x, z) => { const e = Math.max(Math.abs(x) / (TENT.W / 2), Math.abs(z) / (TENT.D / 2)) ** 5; let h = 3 + 1.1 * (1 - e); for (const k of TENT.kings) h += 3 * Math.exp(-Math.hypot(x - k, z) / 4.6); return h; };
+const tent = new THREE.Group(), tentBulbs = [], tentWire = []; const ZC = { x: 0, z: -6 };
+{
+  const g = new THREE.PlaneGeometry(TENT.W, TENT.D, 76, 52).rotateX(-Math.PI / 2), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) p.setY(i, tentH(p.getX(i), p.getZ(i))); g.computeVertexNormals();
+  const m = new THREE.Mesh(g, tentMat); m.castShadow = true; m.receiveShadow = true; tent.add(m);
+  const per = []; for (let i = 0; i <= 6; i++) { const x = -TENT.W / 2 + i * TENT.W / 6; per.push([x, -TENT.D / 2], [x, TENT.D / 2]); } for (let i = 1; i < 4; i++) { const z = -TENT.D / 2 + i * TENT.D / 4; per.push([-TENT.W / 2, z], [TENT.W / 2, z]); }
+  const pole = new THREE.CylinderGeometry(.07, .08, 1, 8).translate(0, .5, 0);
+  for (const [x, z] of per) { const h = tentH(x, z); const q = add(pole, woodMat, x, 0, z, tent); q.scale.y = h; }
+  for (const k of TENT.kings) { const h = tentH(k, 0); const q = add(pole, woodMat, k, 0, 0, tent); q.scale.set(1.6, h, 1.6);
+    for (const [x, z] of per) if (Math.abs(x - k) < 10) festoon(V(ZC.x + k, h - .5, ZC.z), V(ZC.x + x, tentH(x, z) - .15, ZC.z + z), .7, tentBulbs, tentWire, .75); }
+  tent.position.set(ZC.x, 0, ZC.z); scene.add(tent); roofs.push(m);
+}
+
+/* ---------- table layouts ---------- */
+const ZONES = { porche: { x: -25.5, z: -46.7, W: 27, D: 8.6, cap: 120 }, jaima: { x: 0, z: -6, W: 34, D: 21, cap: 250 }, jardin: { x: 0, z: -4, W: 74, D: 46, cap: 600 } };
+const LINENS = [['Azul Empordà', 0x9fc3df], ['Marfil', 0xf1e9d8], ['Salvia', 0xb4c0a0], ['Rosa empolvado', 0xe3beb6], ['Lino', 0xc9b594]];
+const state = { guests: 180, space: 'jaima', style: 'round', linen: 0, time: 'sunset', view: 'aerial', lang: 'es' };
+const chairGeo = prop('Chair'), roundGeo = prop('TableRound'), highGeo = prop('TableHigh'), longGeo = prop('TableLong'), plateGeo = prop('Plate'), glassGeo = prop('Glass');
+const vaseGeo = prop('Vase'), cLeafGeo = prop('Center_leaves'), cFlowerGeo = prop('Center_flowers'), garlandGeo = prop('Garland');
+const candleGeo = new THREE.CylinderGeometry(.022, .022, .16, 6), icoGeo = new THREE.IcosahedronGeometry(1, 1);
+const layout = new THREE.Group(), labels = new THREE.Group(); scene.add(layout, labels); labels.visible = false;
+const labelCache = {};
+function label(n) { if (!labelCache[n]) { const t = tex(64, (g) => { g.fillStyle = '#1b1f16'; g.beginPath(); g.arc(32, 32, 30, 0, 7); g.fill(); g.strokeStyle = '#d9b46a'; g.lineWidth = 3; g.stroke(); g.fillStyle = '#f4efe4'; g.font = '600 30px Inter,sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(n, 32, 34); }); labelCache[n] = new THREE.SpriteMaterial({ map: t, depthTest: false, fog: false, toneMapped: false }); }
+  const s = new THREE.Sprite(labelCache[n]); s.scale.setScalar(1.7); s.renderOrder = 9; return s; }
+function gridFit(n, W, D, sx, sz) { let best = null;
+  for (let c = 1; c <= n; c++) { const r = Math.ceil(n / c), w = c * sx, d = r * sz, over = Math.max(0, w - W) + Math.max(0, d - D), score = over * 100 + Math.abs(Math.log((w / d) / (W / D))); if (!best || score < best.score) best = { c, r, score }; }
+  const pts = []; for (let i = 0; i < n; i++) { const r = Math.floor(i / best.c), c = i % best.c, inRow = r === best.r - 1 ? n - r * best.c : best.c; pts.push({ x: (c - (inRow - 1) / 2) * sx, z: (r - (best.r - 1) / 2) * sz }); }
+  return { pts, w: best.c * sx, d: best.r * sz }; }
+let extent = { w: 30, d: 20 }, cerRows = 10, info = {};
+function buildLayout() {
+  layout.traverse(o => { if (o.isInstancedMesh) o.dispose(); if (o.isLineSegments) o.geometry.dispose(); }); layout.clear(); labels.clear(); seed = 99;
+  const Z = ZONES[state.space], G = state.guests, st = state.style;
+  const chairs = [], cloth = [], cloths2 = [], plates = [], glasses = [], candles = [], green = [], flowers = [], high = [], centers = [], garlands = [];
+  let n, fit, per;
+  if (st === 'round') { n = Math.ceil(G / 10); per = G / n; fit = gridFit(n, Z.W, Z.D, 3.7, 3.7);
+    fit.pts.forEach((p, i) => { const cx = Z.x + p.x, cz = Z.z + p.z, s = Math.floor(G / n) + (i < G % n ? 1 : 0), off = rnd() * 6;
+      cloth.push(Mx(cx, 0, cz, off)); centers.push(Mx(cx, .752, cz, off));
+      for (let k = 0; k < 3; k++) { const a = off + k * 2.09; candles.push(Mx(cx + Math.sin(a) * .36, .83, cz + Math.cos(a) * .36)); }
+      for (let k = 0; k < s; k++) { const a = off + k / s * 6.283, sn = Math.sin(a), cs = Math.cos(a); chairs.push(Mx(cx + sn * 1.3, 0, cz + cs * 1.3, a)); plates.push(Mx(cx + sn * .68, .753, cz + cs * .68)); glasses.push(Mx(cx + Math.sin(a + .22) * .5, .753, cz + Math.cos(a + .22) * .5)); }
+      const l = label(i + 1); l.position.set(cx, 1.5, cz); labels.add(l); });
+  } else if (st === 'imperial') { n = Math.ceil(G / 20); per = G / n; fit = gridFit(n, Z.W, Z.D, 7.6, 3.3);
+    fit.pts.forEach((p, i) => { const cx = Z.x + p.x, cz = Z.z + p.z, s = Math.floor(G / n) + (i < G % n ? 1 : 0), a = Math.ceil(s / 2), b = s - a, L = a * .6 + .4;
+      cloths2.push(Mx(cx, 0, cz, 0, L / 6.4, 1, 1)); for (let x = -L / 2 + .8; x <= L / 2 - .8; x += 1) garlands.push(Mx(cx + x, 0, cz, rnd() < .5 ? 0 : Math.PI));
+      for (let x = -L / 2 + .6; x < L / 2 - .3; x += .9) { candles.push(Mx(cx + x, .85, cz)); flowers.push(Mx(cx + x + .45, .8, cz + R(-.04, .04), 0, .09, .07, .09)); }
+      for (const [cnt, sg] of [[a, 1], [b, -1]]) for (let k = 0; k < cnt; k++) { const x = cx + (k - (cnt - 1) / 2) * .6; chairs.push(Mx(x, 0, cz + sg * .86, sg > 0 ? 0 : Math.PI)); plates.push(Mx(x, .753, cz + sg * .32)); glasses.push(Mx(x + .16, .753, cz + sg * .14)); }
+      const l = label(i + 1); l.position.set(cx, 1.5, cz); labels.add(l); });
+  } else { n = Math.ceil(G / 8); per = 8; fit = gridFit(n, Z.W, Z.D, 3.2, 3.2);
+    fit.pts.forEach((p) => { const cx = Z.x + p.x + R(-.5, .5), cz = Z.z + p.z + R(-.5, .5); high.push(Mx(cx, 0, cz)); green.push(Mx(cx, 1.2, cz, 0, .1, .1, .1)); candles.push(Mx(cx + .15, 1.19, cz + .1)); for (let k = 0; k < 3; k++) glasses.push(Mx(cx + R(-.25, .25), 1.108, cz + R(-.25, .25))); });
+  }
+  extent = { w: fit.w, d: fit.d };
+  // ceremony seating
+  const side = G > 300 ? 12 : 8; cerRows = Math.ceil(G / (side * 2)); const cer = [];
+  for (let i = 0; i < G; i++) { const r = Math.floor(i / (side * 2)), c = i % (side * 2), s = c < side ? -1 : 1, k = c % side; cer.push(Mx(CER.x + s * (1.1 + k * .5), 0, CER.z - 4.5 - r * .95, Math.PI)); }
+  const run = new THREE.Mesh(new THREE.PlaneGeometry(1.5, cerRows * .95 + 5).rotateX(-Math.PI / 2), ivoryMat); run.position.set(CER.x, .05, CER.z - 2 - (cerRows * .95 + 5) / 2 + 2); run.receiveShadow = true; layout.add(run);
+  const pet = []; for (let r = 0; r < cerRows; r += 2) for (const s of [-1, 1]) pet.push(Mx(CER.x + s * .85, .22, CER.z - 4.3 - r * .95, 0, .16, .2, .16)); inst(icoGeo, flowerMat, pet, layout);
+  // lights that follow the active space
+  const bulbs = [...staticBulbs], wire = [...staticWire]; tent.visible = state.space === 'jaima';
+  if (state.space === 'jaima') { bulbs.push(...tentBulbs); wire.push(...tentWire); }
+  if (state.space === 'jardin') { const hw = Math.max(9, fit.w / 2 + 1.5), hd = Math.max(7, fit.d / 2 + 1.5), np = Math.max(2, Math.round(hw * 2 / 9)) + 1, poles = [];
+    for (let i = 0; i < np; i++) { const x = Z.x - hw + i * hw * 2 / (np - 1); poles.push(Mx(x, 2.4, Z.z - hd, 0, .12, 4.8, .12), Mx(x, 2.4, Z.z + hd, 0, .12, 4.8, .12));
+      festoon(V(x, 4.7, Z.z - hd), V(x, 4.7, Z.z + hd), 1.1, bulbs, wire, .8);
+      if (i) { const x0 = Z.x - hw + (i - 1) * hw * 2 / (np - 1); festoon(V(x0, 4.7, Z.z - hd), V(x, 4.7, Z.z - hd), .5, bulbs, wire, .8); festoon(V(x0, 4.7, Z.z + hd), V(x, 4.7, Z.z + hd), .5, bulbs, wire, .8); festoon(V(x0, 4.7, Z.z - hd), V(x, 4.7, Z.z + hd), 1.3, bulbs, wire, .9); } }
+    inst(unit, woodDark, poles, layout); }
+  inst(chairGeo, whiteMat, chairs, layout); inst(chairGeo, whiteMat, cer, layout);
+  inst(roundGeo, clothMat, cloth, layout); inst(longGeo, clothMat, cloths2, layout); inst(highGeo, clothMat, high, layout);
+  inst(vaseGeo, plateMat, centers, layout); inst(cLeafGeo, leafMat, centers, layout); inst(cFlowerGeo, flowerMat, centers, layout, false); inst(garlandGeo, leafMat, garlands, layout);
+  inst(plateGeo, plateMat, plates, layout, false); inst(glassGeo, glassMat, glasses, layout, false);
+  inst(candleGeo, flameMat, candles, layout, false); inst(icoGeo, leafMat, green, layout); inst(icoGeo, flowerMat, flowers, layout, false);
+  inst(bulbGeo, bulbMat, bulbs, layout, false);
+  layout.add(new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute(wire, 3)), wireMat));
+  const lw = Math.min(Z.W, Math.max(10, fit.w)) * .3, ld = Math.min(Z.D, Math.max(6, fit.d)) * .28, ly = state.space === 'jardin' ? 4 : 2.9;
+  [[0, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b], i) => zoneLights[i].position.set(Z.x + a * lw, ly, Z.z + b * ld));
+  info = { n, per: Math.round(per * 10) / 10, area: Math.round(fit.w * fit.d) };
+  updateUI();
+}
+
+/* ---------- camera ---------- */
+let tw = null, touring = false, tourT = 0, tourI = 0;
+const TOUR = ['aerial', 'masia', 'banquet', 'ceremony', 'chill', 'teules'];
+function viewPose(v) { const Z = ZONES[state.space];
+  switch (v) {
+    case 'masia': return [V(15, 2.1, -22.5), V(-1, 4.6, -46)];
+    case 'banquet': return state.space === 'porche' ? [V(-15, 2.3, -43.2), V(-28, 1, -47.5)] : state.space === 'jaima' ? [V(Z.x + 13.5, 2.5, Z.z + 9.5), V(Z.x - 2, 1.5, Z.z - 2)] : [V(Z.x + extent.w * .5 + 6, 6.5, Z.z + extent.d * .5 + 9), V(Z.x, .8, Z.z)];
+    case 'ceremony': return [V(CER.x + .2, 2.3, CER.z - 9 - cerRows * .95), V(CER.x, 1.9, CER.z)];
+    case 'chill': return [V(43.5, 2.2, 6.5), V(53, .7, -6)];
+    case 'teules': return [V(18, 2.6, -21), V(25, 2.2, -40)];
+    case 'plan': { const wide = innerWidth > 760, use = wide ? 1 - 348 / innerWidth : 1, k = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)); const h = Math.max((extent.d + 8) / (wide ? .8 : .5), (extent.w + 14) / (camera.aspect * use)) / k, dx = wide ? -(1 - use) / 2 * k * h * camera.aspect : 0, dz = wide ? 0 : extent.d * .3; return [V(Z.x + dx, h, Z.z + dz + .01), V(Z.x + dx, 0, Z.z + dz)]; }
+    default: return [V(78, 46, 66), V(0, 2, -14)];
+  } }
+function go(v, dur = 2) { state.view = v; const plan = v === 'plan'; roofs.forEach(r => r.visible = !plan); labels.visible = plan && state.style !== 'cocktail';
+  const [p, t] = viewPose(v); tw = { p0: camera.position.clone(), t0: controls.target.clone(), p1: p, t1: t, k: 0, dur };
+  document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === (touring ? 'tour' : v))); }
+function stopTour() { if (touring) { touring = false; controls.autoRotate = false; document.querySelectorAll('#views button').forEach(b => b.classList.toggle('on', b.dataset.v === state.view)); } }
+canvas.addEventListener('pointerdown', stopTour); canvas.addEventListener('wheel', stopTour, { passive: true });
+
+/* ---------- UI ---------- */
+const I = {
+  es: { loading: 'Preparando la finca…', sub: 'Pals · Costa Brava · Tour 3D', hGuests: 'Invitados', guestsUnit: 'personas', hSpace: 'Espacio', porche: 'Porche', jaima: 'Jaima', jardin: 'Jardín', hStyle: 'Montaje', round: 'Redondas', imperial: 'Imperiales', cocktail: 'Cóctel', hLinen: 'Mantelería', hTime: 'Luz', day: 'Día', sunset: 'Atardecer', night: 'Noche', perTable: 'por mesa', area: 'm² de montaje', cerSeats: 'sillas ceremonia', note: 'Montaje orientativo. Aforos de jaima y jardín según la ficha de la finca; el del porche es una estimación.', cta: 'Solicitar presupuesto con este montaje', vAerial: 'Vista aérea', vMasia: 'La masía', vBanquet: 'Banquete', vCeremony: 'Ceremonia', vChill: 'Chill-out', vTeules: 'Les Teules', vPlan: 'Plano de mesas', vTour: '▶ Tour', hint: 'Arrastra para girar · rueda para acercar', tables: 'mesas', high: 'mesas altas', mailS: 'Boda en Mas Gelabert', mailB: (s) => `Hola,\n\nNos gustaría recibir presupuesto para este montaje:\n\n· Invitados: ${s.g}\n· Espacio: ${s.sp}\n· Montaje: ${s.st} (${s.n} mesas)\n· Mantelería: ${s.l}\n\nGracias.` },
+  en: { loading: 'Preparing the estate…', sub: 'Pals · Costa Brava · 3D tour', hGuests: 'Guests', guestsUnit: 'people', hSpace: 'Space', porche: 'Porch', jaima: 'Marquee', jardin: 'Garden', hStyle: 'Layout', round: 'Round', imperial: 'Long tables', cocktail: 'Cocktail', hLinen: 'Linen', hTime: 'Light', day: 'Day', sunset: 'Sunset', night: 'Night', perTable: 'per table', area: 'm² footprint', cerSeats: 'ceremony chairs', note: 'Indicative layout. Marquee and garden capacities follow the venue sheet; the porch figure is an estimate.', cta: 'Request a quote for this layout', vAerial: 'Aerial', vMasia: 'The masía', vBanquet: 'Banquet', vCeremony: 'Ceremony', vChill: 'Chill-out', vTeules: 'Les Teules', vPlan: 'Table plan', vTour: '▶ Tour', hint: 'Drag to orbit · scroll to zoom', tables: 'tables', high: 'high tables', mailS: 'Wedding at Mas Gelabert', mailB: (s) => `Hello,\n\nWe would like a quote for this set-up:\n\n· Guests: ${s.g}\n· Space: ${s.sp}\n· Layout: ${s.st} (${s.n} tables)\n· Linen: ${s.l}\n\nThank you.` }
+};
+const $ = (s) => document.querySelector(s);
+function updateUI() { const L = I[state.lang];
+  document.documentElement.lang = state.lang; $('#lang').textContent = state.lang === 'es' ? 'EN' : 'ES';
+  document.querySelectorAll('[data-i]').forEach(e => e.textContent = L[e.dataset.i]);
+  $('#gN').textContent = state.guests; $('#sTables').textContent = info.n; $('#sTablesL').textContent = state.style === 'cocktail' ? L.high : L.tables;
+  $('#sSeats').textContent = state.style === 'cocktail' ? '—' : info.per; $('#sArea').textContent = info.area; $('#sCer').textContent = state.guests;
+  for (const k of ['space', 'style', 'time']) document.querySelectorAll(`#${k} button`).forEach(b => { b.classList.toggle('on', b.dataset.v === state[k]); if (k === 'space') b.disabled = state.guests > ZONES[b.dataset.v].cap; });
+  document.querySelectorAll('#linen button').forEach((b, i) => b.classList.toggle('on', i === state.linen));
+  $('#cta').href = 'mailto:reserves@masgelabert.com?subject=' + encodeURIComponent(L.mailS) + '&body=' + encodeURIComponent(L.mailB({ g: state.guests, sp: L[state.space], st: L[state.style], n: info.n, l: LINENS[state.linen][0] }));
+}
+LINENS.forEach(([name, c], i) => { const b = document.createElement('button'); b.title = name; b.style.background = '#' + c.toString(16).padStart(6, '0'); b.onclick = () => { state.linen = i; clothMat.color.set(c); updateUI(); }; $('#linen').append(b); });
+function refit() { if (state.guests > ZONES[state.space].cap) state.space = state.guests > 250 ? 'jardin' : 'jaima'; buildLayout(); if (['banquet', 'plan'].includes(state.view) && !touring) go(state.view, 1.2); }
+$('#guests').oninput = (e) => { state.guests = +e.target.value; refit(); };
+for (const k of ['space', 'style']) $('#' + k).onclick = (e) => { const b = e.target.closest('button'); if (!b || b.disabled) return; state[k] = b.dataset.v; buildLayout(); stopTour(); go(state.view === 'plan' ? 'plan' : 'banquet', 1.6); };
+$('#time').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; state.time = b.dataset.v; setTime(state.time); updateUI(); };
+$('#views').onclick = (e) => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.v === 'tour') { touring = true; tourI = 0; tourT = 0; controls.autoRotate = true; controls.autoRotateSpeed = .5; go(TOUR[0]); } else { stopTour(); go(b.dataset.v); } };
+$('#lang').onclick = () => { state.lang = state.lang === 'es' ? 'en' : 'es'; updateUI(); };
+
+/* ---------- go ---------- */
+const qp = new URLSearchParams(location.search);
+for (const k of ['space', 'style', 'time', 'view', 'lang']) if (qp.get(k)) state[k] = qp.get(k);
+if (qp.get('guests')) state.guests = Math.max(80, Math.min(600, +qp.get('guests') || 180));
+if (qp.get('linen')) state.linen = Math.min(LINENS.length - 1, +qp.get('linen') || 0);
+if (state.guests > ZONES[state.space].cap) state.space = state.guests > 250 ? 'jardin' : 'jaima';
+$('#guests').value = state.guests;
+clothMat.color.set(LINENS[state.linen][1]); buildLayout(); await setTime(state.time); go(state.view, qp.has('view') ? .01 : 3.2);
+const clock = new THREE.Clock(); let first = true;
+if (qp.has('film')) document.getElementById('loader').classList.add('done'); else renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), .1);
+  if (tw) { tw.k = Math.min(1, tw.k + dt / tw.dur); const e = tw.k < .5 ? 4 * tw.k ** 3 : 1 - (-2 * tw.k + 2) ** 3 / 2; camera.position.lerpVectors(tw.p0, tw.p1, e); controls.target.lerpVectors(tw.t0, tw.t1, e); if (tw.k >= 1) tw = null; }
+  if (touring) { tourT += dt; if (tourT > 9) { tourT = 0; tourI = (tourI + 1) % TOUR.length; go(TOUR[tourI], 3); } }
+  controls.update(); if (camera.position.y < .7) camera.position.y = .7;
+  composer.render();
+  if (first) { first = false; document.getElementById('loader').classList.add('done'); }
+});
+window.__tour = { state, go, setTime, buildLayout, camera, controls, THREE, scene, composer, renderer, roofs, labels, clothMat, LINENS, ZONES, viewPose, updateUI, getExtent: () => extent };
+</script>
+</body>
+</html>

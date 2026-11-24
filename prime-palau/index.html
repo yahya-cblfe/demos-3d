@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prime Palau · Palau-saverdera · Demo 3D</title>
+<meta name="description" content="Demo 3D orientativa de Prime Palau (Prime Nordisk): seis casas en hilera en el Carrer de l'Oliva, Palau-saverdera.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231e2a2c'/%3E%3Cpath d='M7 22V13l9-6 9 6v9' fill='none' stroke='%23d9b46a' stroke-width='2.4'/%3E%3C/svg%3E">
+<script type="importmap">{ "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }</script>
+<style>
+@font-face { font-family: 'Assistant'; font-weight: 200 800; font-display: swap; src: url(vendor/fonts/assistant-latin.woff2) format('woff2'); }
+@font-face { font-family: 'Cormorant Garamond'; font-weight: 600; font-display: swap; src: url(vendor/fonts/cormorant-garamond-600-latin.woff2) format('woff2'); }
+:root { --gold: #c9a35f; --gold-hi: #e0c084; --ink: #182022; --panel: rgba(20, 26, 28, .70); --solid: #1c2426; --line: rgba(255,255,255,.15);
+  --text: #f5f2ec; --muted: #c9c4ba; --ok: #7fcf9a; --font: 'Assistant', system-ui, sans-serif; --serif: 'Cormorant Garamond', Georgia, serif; --g: 18px; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #0c2341; color: var(--text); font-family: var(--font); -webkit-tap-highlight-color: transparent; }
+button { font: inherit; color: inherit; }
+#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; }
+.glass { background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; border-radius: 999px; padding: 9px 16px; font-weight: 700; font-size: 14px; cursor: pointer;
+  text-decoration: none; border: 1px solid var(--line); background: var(--panel); color: var(--text); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: transform .15s, background .2s; white-space: nowrap; }
+.btn:hover { transform: translateY(-1px); background: rgba(40, 50, 52, .85); }
+.btn.gold { background: linear-gradient(180deg, var(--gold-hi), var(--gold)); color: #1b140c; border-color: transparent; }
+.btn.small { padding: 6px 12px; font-size: 13px; }
+.btn svg { width: 16px; height: 16px; }
+
+/* top bar */
+.top { position: fixed; top: 0; left: 0; right: 0; z-index: 6; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+  padding: calc(env(safe-area-inset-top) + 14px) var(--g) 28px; pointer-events: none; background: linear-gradient(to bottom, rgba(8,12,14,.5), rgba(8,12,14,0)); }
+.top > * { pointer-events: auto; }
+#brand .name { font-family: var(--serif); font-size: 30px; line-height: 1; color: #fbf3e2; letter-spacing: .01em; }
+#brand small { display: block; font-size: 10.5px; letter-spacing: 2.6px; text-transform: uppercase; color: var(--gold-hi); margin-top: 6px; font-weight: 700; }
+.right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+#langs { display: flex; border-radius: 999px; padding: 3px; }
+#langs button { border: 0; background: none; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; cursor: pointer; opacity: .65; }
+#langs button[aria-pressed="true"] { background: rgba(255,255,255,.16); opacity: 1; }
+
+/* intro caption */
+#story { position: fixed; left: var(--g); bottom: calc(env(safe-area-inset-bottom) + 60px); z-index: 5; width: min(470px, calc(100vw - 2 * var(--g))); pointer-events: none; }
+#story .card { padding: 20px 22px; border-radius: 18px; background: linear-gradient(135deg, rgba(10,14,16,.62), rgba(10,14,16,.30)); border: 1px solid rgba(255,255,255,.1); backdrop-filter: blur(8px);
+  transition: opacity .6s, transform .6s; }
+#story .kicker { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-hi); font-weight: 700; }
+#story h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(30px, 4.6vw, 52px); line-height: 1.02; margin: 8px 0 10px; text-shadow: 0 2px 24px rgba(0,0,0,.35); }
+#story p { font-size: 16px; line-height: 1.5; margin: 0; opacity: .92; }
+#storybar { height: 3px; border-radius: 3px; background: rgba(255,255,255,.15); margin-top: 14px; overflow: hidden; }
+#storybar i { display: block; height: 100%; width: 0; background: var(--gold-hi); }
+#skip { position: fixed; right: var(--g); bottom: calc(env(safe-area-inset-bottom) + 60px); z-index: 7; }
+body:not(.intro) #story, body:not(.intro) #skip { display: none; }
+body.intro .ui { display: none !important; }
+
+/* left panel: unit picker + toggles */
+#panel { position: fixed; left: var(--g); top: 92px; z-index: 5; width: 300px; border-radius: 18px; padding: 16px; max-height: calc(100vh - 190px); overflow: auto; scrollbar-width: thin; }
+#panel h3 { margin: 0 0 10px; font-size: 11px; letter-spacing: 2.4px; text-transform: uppercase; color: var(--gold-hi); }
+#panel h3 + p { margin: -4px 0 10px; font-size: 13px; color: var(--muted); line-height: 1.35; }
+#units { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+#units button { border: 1px solid var(--line); background: rgba(255,255,255,.05); border-radius: 12px; padding: 8px 6px 7px; cursor: pointer; text-align: center; transition: background .2s, border-color .2s; }
+#units button b { display: block; font-family: var(--serif); font-size: 24px; line-height: 1; }
+#units button span { display: block; font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+#units button i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-right: 4px; vertical-align: 1px; }
+#units button[aria-pressed="true"] { background: linear-gradient(180deg, rgba(224,192,132,.95), rgba(201,163,95,.95)); color: #1b140c; border-color: transparent; }
+#units button[aria-pressed="true"] span { color: #3b2c12; }
+.tg { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.tg button { border: 1px solid var(--line); background: rgba(255,255,255,.05); border-radius: 999px; padding: 6px 11px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.tg button[aria-pressed="true"] { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.4); }
+.sep { height: 1px; background: var(--line); margin: 14px 0 12px; }
+.facts { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 0; }
+.facts b { color: var(--text); font-weight: 700; }
+
+/* unit card */
+#card { position: fixed; right: var(--g); top: 92px; z-index: 6; width: 330px; border-radius: 18px; padding: 18px 18px 16px; background: rgba(20,26,28,.86); border: 1px solid var(--line);
+  backdrop-filter: blur(12px); box-shadow: 0 24px 60px rgba(0,0,0,.35); transition: opacity .3s, transform .3s; }
+#card[hidden] { display: none; }
+#card .lv { font-size: 11px; letter-spacing: 2.4px; text-transform: uppercase; color: var(--gold-hi); font-weight: 700; }
+#card h2 { font-family: var(--serif); font-size: 38px; margin: 2px 0 0; font-weight: 600; line-height: 1; }
+#card .price { font-size: 22px; font-weight: 800; margin-top: 10px; }
+#card .price small { font-size: 13px; font-weight: 600; color: var(--muted); margin-left: 4px; }
+#card dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 12px 0 0; }
+#card dl div { background: rgba(255,255,255,.06); border-radius: 10px; padding: 7px 8px; }
+#card dt { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+#card dd { margin: 2px 0 0; font-weight: 800; font-size: 17px; }
+#card .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 13.5px; color: var(--muted); }
+#card .status { color: var(--ok); font-weight: 800; }
+#card .acts { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+#card .acts .btn { flex: 1; }
+.x { position: absolute; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: rgba(255,255,255,.06); cursor: pointer; font-size: 18px; line-height: 1; padding: 0; }
+
+/* bottom: view presets */
+#views { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom) + 14px); z-index: 5; display: flex; gap: 6px; padding: 5px; border-radius: 999px; max-width: calc(100vw - 2 * var(--g)); overflow-x: auto; scrollbar-width: none; }
+#views::-webkit-scrollbar { display: none; }
+#views button { border: 0; background: none; padding: 8px 13px; border-radius: 999px; font-size: 13.5px; font-weight: 700; cursor: pointer; white-space: nowrap; opacity: .82; }
+#views button[aria-pressed="true"] { background: rgba(255,255,255,.18); opacity: 1; }
+#views button:hover { opacity: 1; }
+
+/* explode mode */
+#floors { position: fixed; left: var(--g); top: 50%; transform: translateY(-50%); z-index: 6; display: none; flex-direction: column; gap: 6px; }
+body.explode #floors { display: flex; }
+body.explode #panel, body.explode #views { display: none; }
+#floors .t { font-size: 11px; letter-spacing: 2.4px; text-transform: uppercase; color: var(--gold-hi); font-weight: 700; margin: 0 0 2px 4px; text-shadow: 0 1px 8px rgba(0,0,0,.6); }
+#floors button { text-align: left; border: 1px solid var(--line); background: var(--panel); backdrop-filter: blur(8px); border-radius: 12px; padding: 8px 14px; cursor: pointer; font-size: 14px; font-weight: 700; min-width: 186px; }
+#floors button small { display: block; font-weight: 600; font-size: 12px; color: var(--muted); }
+#floors button[aria-pressed="true"] { background: linear-gradient(180deg, var(--gold-hi), var(--gold)); color: #1b140c; border-color: transparent; }
+#floors button[aria-pressed="true"] small { color: #3b2c12; }
+#floors .row { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; max-width: 200px; }
+#exbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(env(safe-area-inset-bottom) + 14px); z-index: 6; display: none; gap: 8px; }
+body.explode #exbar { display: flex; }
+
+/* labels */
+#labels { position: fixed; inset: 0; z-index: 3; pointer-events: none; overflow: hidden; }
+.pin { position: absolute; left: 0; top: 0; pointer-events: auto; cursor: pointer; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; transition: opacity .3s; }
+.pin b { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: rgba(20,26,28,.85); border: 2px solid var(--gold-hi); font-family: var(--serif); font-size: 21px; color: #fff;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35); transition: transform .2s, background .2s; }
+.pin::after { content: ''; width: 2px; height: 16px; background: linear-gradient(var(--gold-hi), transparent); }
+.pin:hover b { transform: scale(1.12); }
+.pin.on b { background: linear-gradient(180deg, var(--gold-hi), var(--gold)); color: #1b140c; transform: scale(1.18); }
+.lbl { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); white-space: nowrap; font-size: 12.5px; font-weight: 800; color: var(--ink); background: rgba(255,255,255,.9);
+  padding: 4px 10px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.2); transition: opacity .35s; }
+.lbl small { font-weight: 600; color: #5b5f5f; margin-left: 4px; }
+.lbl.out { background: rgba(232, 244, 236, .92); }
+.hidden { opacity: 0 !important; pointer-events: none !important; }
+
+#note { position: fixed; right: var(--g); bottom: calc(env(safe-area-inset-bottom) + 16px); z-index: 4; max-width: 330px; font-size: 11px; line-height: 1.4; color: rgba(255,255,255,.88);
+  text-shadow: 0 1px 6px rgba(0,0,0,.7); text-align: right; }
+#hint { position: fixed; left: 50%; top: 86px; transform: translateX(-50%); z-index: 4; font-size: 13px; padding: 6px 14px; border-radius: 999px; transition: opacity .6s; pointer-events: none; }
+
+#loading { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: #0c2341; color: #cfe6ff; transition: opacity .7s; }
+#loading.done { opacity: 0; pointer-events: none; }
+#loading .n { font-family: var(--serif); font-size: 38px; text-align: center; color: #fbf3e2; }
+#loading small { display: block; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; text-align: center; margin-top: 10px; color: #9fc5ea; }
+#loading .bar { width: 180px; height: 2px; background: rgba(255,255,255,.15); margin: 18px auto 0; border-radius: 2px; overflow: hidden; }
+#loading .bar i { display: block; height: 100%; width: 0; background: #cfe6ff; transition: width .3s; }
+
+#videoModal { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: rgba(5,8,10,.78); padding: 4vh 4vw; }
+#videoModal[hidden] { display: none; }
+#videoModal .frame { position: relative; width: min(1200px, 100%); aspect-ratio: 16 / 9; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 80px rgba(0,0,0,.5); background: #000; }
+#videoModal video { width: 100%; height: 100%; display: block; }
+#videoModal .x { z-index: 2; background: rgba(0,0,0,.5); }
+
+/* mobile */
+@media (max-width: 760px) {
+  :root { --g: 12px; }
+  #brand .name { font-size: 24px; }
+  #brand small { font-size: 9px; letter-spacing: 1.8px; }
+  .top #btnVideo span { display: none; }
+  .top #btnVideo { padding: 7px 10px; }
+  body.inside #units, body.inside #panel .sep { display: none; }
+  body.carded #panel, body.carded #views { display: none; }
+  .top .btn { padding: 7px 12px; font-size: 13px; }
+  #panel { top: auto; bottom: calc(env(safe-area-inset-bottom) + 62px); left: var(--g); right: var(--g); width: auto; padding: 10px 10px 8px; border-radius: 16px; max-height: 40vh; }
+  #panel h3, #panel h3 + p, #panel .facts, #panel .sep.m-hide { display: none; }
+  #units { grid-template-columns: repeat(6, 1fr); gap: 4px; }
+  #units button { padding: 6px 2px 5px; border-radius: 10px; }
+  #units button b { font-size: 20px; }
+  #units button span { font-size: 10px; }
+  .sep { margin: 8px 0; }
+  .tg { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .tg button { font-size: 12px; padding: 5px 9px; white-space: nowrap; }
+  #views { bottom: calc(env(safe-area-inset-bottom) + 10px); left: var(--g); right: var(--g); transform: none; max-width: none; }
+  #views button { font-size: 12.5px; padding: 7px 10px; }
+  #card { left: var(--g); right: var(--g); width: auto; top: auto; bottom: calc(env(safe-area-inset-bottom) + 10px); padding: 14px; z-index: 8; }
+  #card h2 { font-size: 30px; }
+  #card .price { font-size: 19px; margin-top: 6px; }
+  #card dd { font-size: 15px; }
+  #note { left: var(--g); right: var(--g); max-width: none; text-align: left; bottom: auto; top: 76px; font-size: 10px; }
+  body.explode #note, body.carded #note { display: none; }
+  #floors { top: auto; transform: none; bottom: calc(env(safe-area-inset-bottom) + 64px); left: var(--g); right: var(--g); flex-direction: row; flex-wrap: wrap; gap: 4px; }
+  #floors .t { display: none; }
+  #floors button { min-width: 0; flex: 1 1 22%; padding: 6px 8px; font-size: 12.5px; }
+  #floors button small { display: none; }
+  #floors .row { max-width: none; width: 100%; margin-top: 2px; }
+  #floors .row .btn { flex: 1; }
+  #exbar { left: var(--g); right: var(--g); transform: none; justify-content: center; }
+  #story { bottom: calc(env(safe-area-inset-bottom) + 70px); }
+  #story p { font-size: 14px; }
+  #skip { bottom: calc(env(safe-area-inset-bottom) + 14px); }
+  .lbl { font-size: 11px; padding: 3px 8px; }
+  .lbl small { display: none; }
+  .pin b { width: 28px; height: 28px; font-size: 17px; }
+  #hint { top: 118px; font-size: 12px; }
+}
+</style>
+</head>
+<body class="intro">
+<canvas id="c" tabindex="0" aria-label="Vista 3D de Prime Palau"></canvas>
+<div id="labels"></div>
+
+<header class="top">
+  <div id="brand"><div class="name">Prime Palau</div><small data-i="sub">Palau-saverdera · Prime Nordisk</small></div>
+  <div class="right">
+    <div id="langs" class="glass"><button data-lang="es" aria-pressed="true">ES</button><button data-lang="en" aria-pressed="false">EN</button></div>
+    <button class="btn ui" id="btnVideo" aria-label="Vídeo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg><span data-i="video">Vídeo</span></button>
+    <a class="btn gold ui" id="cta" href="#"><span data-i="cta">Pedir información</span></a>
+  </div>
+</header>
+
+<section id="story" aria-live="polite"><div class="card"><div class="kicker" id="stK"></div><h2 id="stH"></h2><p id="stP"></p><div id="storybar"><i></i></div></div></section>
+<button class="btn" id="skip" data-i="skip">Saltar intro ›</button>
+
+<aside id="panel" class="glass ui">
+  <h3 data-i="pick">Elige tu casa</h3>
+  <p data-i="pickP">6 casas en hilera · toca una casa o una letra</p>
+  <div id="units"></div>
+  <div class="sep"></div>
+  <div class="tg" id="toggles">
+    <button data-t="time" aria-pressed="false" data-i="sunset">Atardecer</button>
+    <button data-t="pool" aria-pressed="false" data-i="pool">Piscina privada (opcional)</button>
+    <button data-t="furn" aria-pressed="true" data-i="furn">Mobiliario</button>
+    <button data-t="shut" aria-pressed="false" data-i="shut">Persianas bajadas</button>
+  </div>
+  <div class="sep m-hide"></div>
+  <p class="facts" id="facts"></p>
+</aside>
+
+<aside id="card" hidden>
+  <button class="x" id="cardX" aria-label="Cerrar">×</button>
+  <div class="lv" id="cLv"></div>
+  <h2 id="cH"></h2>
+  <div class="price" id="cPrice"></div>
+  <dl>
+    <div><dt data-i="built">Construidos</dt><dd id="cBuilt"></dd></div>
+    <div><dt data-i="ext">Exterior</dt><dd id="cExt"></dd></div>
+    <div><dt data-i="plot">Parcela</dt><dd id="cPlot"></dd></div>
+  </dl>
+  <div class="meta"><span id="cRooms"></span><span class="status" id="cStatus"></span></div>
+  <div class="acts">
+    <button class="btn gold" id="cEnter"><span data-i="enter">Entrar · por plantas</span></button>
+    <a class="btn" id="cMail" href="#"><span data-i="ask">Pedir info</span></a>
+  </div>
+</aside>
+
+<nav id="views" class="glass ui"></nav>
+
+<div id="floors">
+  <div class="t" id="flT">Casa C</div>
+  <button data-f="all" aria-pressed="true"><span data-i="fAll">Todas las plantas</span><small data-i="fAllS">vista despiezada</small></button>
+  <button data-f="L2" aria-pressed="false"><span data-i="f2">Planta primera</span><small data-i="f2S">≈ 55-56 m² útiles</small></button>
+  <button data-f="L1" aria-pressed="false"><span data-i="f1">Planta baja</span><small data-i="f1S">≈ 56-58 m² útiles</small></button>
+  <button data-f="L0" aria-pressed="false"><span data-i="f0">Planta calle</span><small data-i="f0S">≈ 39-40 m² útiles</small></button>
+  <div class="row"><button class="btn small" id="toLiving" data-i="toLiving">Salón 3D</button><button class="btn small" id="toBed" data-i="toBed">Dormitorio 3D</button></div>
+</div>
+<div id="exbar"><button class="btn" id="replay" data-i="replay">Ver construcción</button><button class="btn gold" id="exitEx" data-i="exit">‹ Volver a la calle</button></div>
+
+<div id="hint" class="glass ui hidden"></div>
+<div id="note" class="ui"><span data-i="note">Imágenes orientativas de una promoción en proyecto; acabados y colores aproximados.</span> <span data-i="note2">Demo creada por Yahya con la información pública de Prime Nordisk; distribución y medidas aproximadas.</span></div>
+
+<div id="videoModal" hidden><div class="frame"><button class="x" id="videoX" aria-label="Cerrar">×</button><video id="vid" controls playsinline preload="none" poster="video/poster.jpg"><source src="video/demo.mp4" type="video/mp4"></video></div></div>
+
+<div id="loading"><div><div class="n">Prime Palau</div><small id="loadTxt">Cargando demo 3D</small><div class="bar"><i id="loadBar"></i></div></div></div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
